@@ -1,13 +1,22 @@
-// app/page.tsx (untuk App Router)
+// app/dashboard/plagiarism-tools/page.tsx
 'use client'
-import React, { useState } from 'react';
-import { CloudUploadIcon } from '@heroicons/react/outline'; // Pastikan Heroicons terinstal (npm install @heroicons/react)
+import React, { FormEvent, useState } from 'react';
+import { CloudUploadIcon } from '@heroicons/react/outline';
+import { ALLOWED_MIME_TYPES } from '@/constants/uploadConstant';
+
+type APIresponse = {
+    success: boolean,
+    message: string,
+    data: any,
+}
 
 export default function PlagiarismPage() {
   const [isDragOver, setIsDragOver] = useState(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
-  const [selectedFileType, setSelectedFileType] = useState('transparentPng'); // Default active section
-  const [isUploaded, setIsUploaded] = useState<Boolean>(false)
+  const [isUploading, setIsUploading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+  const [response, setResponse] = useState<APIresponse | undefined>()
+  const [fileInputKey, setFileInputKey] = useState(Date.now());
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
@@ -23,19 +32,75 @@ export default function PlagiarismPage() {
     e.preventDefault();
     setIsDragOver(false);
     const files = Array.from(e.dataTransfer.files);
-    setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
-    // logic here
-    console.log('Dropped files:', files);
+    const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/csv'];
+    const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type));
+
+    setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles]);
+
+    if (filteredFiles.length < files.length) {
+        setMessage('Some files were not added because their type is not allowed.');
+        setTimeout(() => setMessage(''), 3000);
+    }
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files ? Array.from(e.target.files) : [];
-    setUploadedFiles((prevFiles) => [...prevFiles, ...files]);
-    console.log('Selected files:', files);
+    const allowedMimeTypes = ALLOWED_MIME_TYPES
+    const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type));
+
+    setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles]);
+    console.log('Selected files:', filteredFiles);
+    if (filteredFiles.length < files.length) {
+        setMessage('Some files were not added because their type is not allowed.');
+        setTimeout(() => setMessage(''), 3000);
+    }
   };
 
-  const uploadFiles = () => {
-    return true
+  const uploadFiles = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    if(uploadedFiles.length === 0){
+        setMessage(`You don't have any files to be uploaded`)
+        return
+    }
+    
+    const formData = new FormData()
+    uploadedFiles.forEach((file) => {
+        formData.append('files', file)
+    })
+
+    try{
+        setIsUploading(true)
+        const apiResponse = await fetch('/api/plagiarism', {
+            method: 'POST',
+            body: formData
+        })
+
+        const data = await apiResponse.json()
+        if ( apiResponse.ok ){
+            setMessage('Files has been uploaded successfully!')
+            setUploadedFiles([])
+            setFileInputKey(Date.now())
+        }else{
+            setMessage(`Upload failed: ${data.error || data.message || 'An unknown error occurred'}`)
+        }
+
+        setResponse(data)
+        
+        setTimeout(() => {
+            setIsUploading(false)
+            setMessage('')
+            setResponse(undefined)
+        }, 3000)
+    } catch ( error: any){
+        console.error(`Error when uploading: `, error)
+        setMessage('Internal server error during upload.')
+        setResponse({ success: false, message: 'Internal server error', data: null });
+        setTimeout(() => {
+            setIsUploading(false)
+            setMessage('')
+            setResponse(undefined)
+        }, 3000)
+    }
   }
 
   return (
@@ -47,13 +112,13 @@ export default function PlagiarismPage() {
         <div className="w-full bg-white p-6 rounded-lg shadow-md">
           {/* Info Bar */}
           <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-6" role="alert">
-            <p className="font-bold">Do not submit generative AI content with titles that imply an actual depiction of newsworthy events. <a href="#" className="text-yellow-800 underline">More info</a>.</p>
+            <p className="font-bold">put the document in the box to check the authenticity of the document</p>
           </div>
 
-          {/* Success Message */}
-          {isUploaded && (
-            <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-6" role="alert">
-                <p className="font-bold">Your files were successfully submitted</p>
+          {/* Success/Error Message */}
+          {(isUploading && message) && (
+            <div className={`${response?.success ? 'bg-green-100 border-green-500 text-green-700' : 'bg-red-100 border-red-500 text-red-700'} border-l-4 p-4 mb-6`} role="alert">
+                <p className="font-bold">{message || (isUploading ? 'Uploading files...' : '')}</p>
             </div>
           )}
 
@@ -70,37 +135,46 @@ export default function PlagiarismPage() {
             <CloudUploadIcon className="h-20 w-20 text-blue-500 mb-4" />
             <p className="text-lg font-semibold">Drag & Drop files or</p>
             <input
+              key={fileInputKey}
               type="file"
               multiple
               className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               onChange={handleFileSelect}
+              accept=".pdf,.doc,.docx,.txt,.csv"
             />
             <button className="mt-2 text-blue-600 font-bold hover:underline">
               Browse
             </button>
           </div>
 
-          {/* Uploaded Files Preview (basic placeholder) */}
+          {/* Uploaded Files Preview */}
           {uploadedFiles.length > 0 && (
             <div className="mt-8">
-                <div className='flex gap-4 mb-4'>
-                    <h3 className="text-lg font-semibold mb-4 w-1/5">
-                        Uploaded Files ({uploadedFiles.length})
-                    </h3>
-                    <div className='flex-grow-1 w-4/5'>
-                        <button className='p-2 w-[100px] bg-teal-500 text-white font-bold rounded-md hover:bg-teal-600' onChange={uploadFiles}>Submit</button>
+                <form onSubmit={uploadFiles}>
+                    <div className='flex gap-4 mb-4 items-center'> 
+                        <h3 className="text-lg font-semibold w-1/5">
+                            Uploaded Files ({uploadedFiles.length})
+                        </h3>
+                        <div className='flex-grow w-4/5 text-right'> 
+                            <button 
+                                type='submit'
+                                className='p-2 w-[100px] bg-teal-500 text-white font-bold rounded-md hover:bg-teal-600' 
+                                disabled={isUploading || uploadedFiles.length === 0}>
+                                {isUploading ? 'Uploading...' : 'Upload'}
+                            </button>
+                        </div>
                     </div>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                    {uploadedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center space-x-3 p-3 border rounded-md bg-white shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                        <span className="text-sm font-medium text-gray-800 truncate">{file.name}</span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                        {uploadedFiles.map((file, index) => (
+                        <div key={index} className="flex items-center space-x-3 p-3 border rounded-md bg-white shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <span className="text-sm font-medium text-gray-800 truncate">{file.name}</span>
+                        </div>
+                        ))}
                     </div>
-                    ))}
-                </div>
+                </form>
             </div>
           )}
         </div>
