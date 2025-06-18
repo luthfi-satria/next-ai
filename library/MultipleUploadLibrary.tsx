@@ -92,7 +92,7 @@ export default class MultipleUploadLibrary {
         })
     }
 
-    public async processUploadedFiles(files: FormidableFile[]): Promise<UploadedFileInfo[]> {
+    public async processUploadedFiles(files: FormidableFile[], unlinking: boolean): Promise<UploadedFileInfo[]> {
         const results: UploadedFileInfo[] = []
 
         for (const file of files) {
@@ -105,13 +105,19 @@ export default class MultipleUploadLibrary {
                 message: `File '${file.originalFilename}' proceed and available at ${file.filepath}`
             })
 
-            try {
-                await fs.promises.unlink(file.filepath);
-            } catch (unlinkErr) {
-                console.error(`file temp failed to removed ${file.filepath}:`, unlinkErr);
+            if(unlinking === true){
+                try {
+                    await this.unlinkFile(file.filepath)
+                } catch (unlinkErr) {
+                    console.error(`file temp failed to removed ${file.filepath}:`, unlinkErr);
+                }
             }
         }
         return results
+    }
+
+    public async unlinkFile(filepath:string){
+        return await fs.promises.unlink(filepath)
     }
 }
 

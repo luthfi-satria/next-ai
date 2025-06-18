@@ -1,60 +1,69 @@
 // app/dashboard/plagiarism-tools/page.tsx
 'use client'
-import React, { FormEvent, useState } from 'react';
-import { CloudUploadIcon } from '@heroicons/react/outline';
-import { ALLOWED_MIME_TYPES } from '@/constants/uploadConstant';
+import React, { FormEvent, useState } from 'react'
+import { CloudUploadIcon } from '@heroicons/react/outline'
+import { ALLOWED_MIME_TYPES } from '@/constants/uploadConstant'
+
+type PlagiarismAnalysisResult = {
+    fileName: string
+    status: 'Success' | 'Error'
+    analysis?: string
+    message?: string
+    filePath?: string
+}
 
 type APIresponse = {
     success: boolean,
     message: string,
-    data: any,
+    data: PlagiarismAnalysisResult | null,
 }
 
 export default function PlagiarismPage() {
-  const [isDragOver, setIsDragOver] = useState(false);
-  const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
+  const [isDragOver, setIsDragOver] = useState(false)
+  const [uploadedFiles, setUploadedFiles] = useState<File[]>([])
   const [isUploading, setIsUploading] = useState<boolean>(false)
   const [message, setMessage] = useState<string>('')
   const [response, setResponse] = useState<APIresponse | undefined>()
-  const [fileInputKey, setFileInputKey] = useState(Date.now());
+  const [fileInputKey, setFileInputKey] = useState(Date.now())
+  const [plagiarismResults, setPlagiarismResults] = useState<PlagiarismAnalysisResult[]>([])
 
   const handleDragOver = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(true);
-  };
+    e.preventDefault()
+    setIsDragOver(true)
+  }
 
   const handleDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-  };
+    e.preventDefault()
+    setIsDragOver(false)
+  }
 
   const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
-    e.preventDefault();
-    setIsDragOver(false);
-    const files = Array.from(e.dataTransfer.files);
-    const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/csv'];
-    const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type));
+    e.preventDefault()
+    setIsDragOver(false)
+    const files = Array.from(e.dataTransfer.files)
+    const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/csv']
+    const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type))
 
-    setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles]);
+    setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles])
 
     if (filteredFiles.length < files.length) {
-        setMessage('Some files were not added because their type is not allowed.');
-        setTimeout(() => setMessage(''), 3000);
+        setMessage('Some files were not added because their type is not allowed.')
+        setTimeout(() => setMessage(''), 3000)
     }
-  };
+  }
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files ? Array.from(e.target.files) : [];
+    const files = e.target.files ? Array.from(e.target.files) : []
     const allowedMimeTypes = ALLOWED_MIME_TYPES
-    const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type));
+    const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type))
 
-    setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles]);
-    console.log('Selected files:', filteredFiles);
+    setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles])
+    console.log('Selected files:', filteredFiles)
     if (filteredFiles.length < files.length) {
-        setMessage('Some files were not added because their type is not allowed.');
-        setTimeout(() => setMessage(''), 3000);
+        setMessage('Some files were not added because their type is not allowed.')
+        setTimeout(() => setMessage(''), 3000)
     }
-  };
+  }
 
   const uploadFiles = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -80,8 +89,12 @@ export default function PlagiarismPage() {
             setMessage('Files has been uploaded successfully!')
             setUploadedFiles([])
             setFileInputKey(Date.now())
+            if(data.data){
+                setPlagiarismResults(data.data as PlagiarismAnalysisResult[])
+            }
         }else{
             setMessage(`Upload failed: ${data.error || data.message || 'An unknown error occurred'}`)
+            setPlagiarismResults([])
         }
 
         setResponse(data)
@@ -94,7 +107,7 @@ export default function PlagiarismPage() {
     } catch ( error: any){
         console.error(`Error when uploading: `, error)
         setMessage('Internal server error during upload.')
-        setResponse({ success: false, message: 'Internal server error', data: null });
+        setResponse({ success: false, message: 'Internal server error', data: null })
         setTimeout(() => {
             setIsUploading(false)
             setMessage('')
@@ -177,8 +190,36 @@ export default function PlagiarismPage() {
                 </form>
             </div>
           )}
+
+          {/* New Section: Plagiarism Check Results */}
+          {plagiarismResults.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-lg font-semibold mb-4">Plagiarism Check Results</h3>
+              <div className="space-y-4">
+                {plagiarismResults.map((result, index) => (
+                  <div key={index} className="border p-4 rounded-md shadow-sm bg-gray-50">
+                    <p className="font-bold text-lg">{result.fileName}</p>
+                    {result.status === 'Success' ? (
+                      <div>
+                        <p className="text-green-600 font-medium">Status: Success</p>
+                        <div className="mt-2 p-3 bg-white border rounded-md text-sm whitespace-pre-wrap">
+                          {result.analysis}
+                        </div>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-red-600 font-medium">Status: Error</p>
+                        <p className="text-sm text-gray-700">Message: {result.message}</p>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          
         </div>
       </div>
     </div>
-  );
+  )
 }
