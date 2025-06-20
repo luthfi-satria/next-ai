@@ -41,7 +41,7 @@ export default function PlagiarismPage() {
     e.preventDefault()
     setIsDragOver(false)
     const files = Array.from(e.dataTransfer.files)
-    const allowedMimeTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'text/csv']
+    const allowedMimeTypes = ALLOWED_MIME_TYPES
     const filteredFiles = files.filter(file => allowedMimeTypes.includes(file.type))
 
     setUploadedFiles((prevFiles) => [...prevFiles, ...filteredFiles])

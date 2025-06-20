@@ -21,7 +21,7 @@ export async function GET(req: NextRequest){
 
 }
 
-export async function POST(req: NextRequest, res: NextResponse){
+export async function POST(req: NextRequest){
     try {
         const bodyBuffer = await streamToBuffer(req.body as ReadableStream<Uint8Array>)
         const mockReq: FormidableRequest = new Readable({
@@ -87,7 +87,8 @@ export async function POST(req: NextRequest, res: NextResponse){
         const response = {
             success: true,
             message: 'Files processed for plagiarism check!',
-            data: plagiarismResults
+            data: plagiarismResults,
+            debug: uploadedFormidableFiles
         }
 
         return NextResponse.json(response, {status: 200})

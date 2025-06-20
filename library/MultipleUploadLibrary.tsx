@@ -64,10 +64,9 @@ export default class MultipleUploadLibrary {
         })
 
         return new Promise((resolve, reject) => {
-            // formidable akan mem-parse `req` yang akan diberikan oleh route.ts
             form.parse(req, (err, fields, files) => {
                 if (err) {
-                    if (err.code === formidable.errors.biggerThanMaxFileSize) {
+                    if (err.code === formidable?.errors?.biggerThanMaxFileSize) {
                         return reject(new Error(`File size limit exceeded: ${this.config.maxFileSize / (1024 * 1024)}MB per file`))
                     }
 
@@ -117,7 +116,12 @@ export default class MultipleUploadLibrary {
     }
 
     public async unlinkFile(filepath:string){
-        return await fs.promises.unlink(filepath)
+        try{
+            await fs.promises.access(filepath, fs.constants.F_OK)
+            return await fs.promises.unlink(filepath)
+        }catch(error: any){
+            return false
+        }
     }
 }
 
