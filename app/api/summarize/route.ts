@@ -8,11 +8,15 @@ export async function GET() {
 }
 
 // Export the default handler function for Next.js API routes
-export async function POST(req: Request, res: Response) {
+export async function POST(req: Request) {
   try {
     const { textToSummarize } = await req.json();
 
-    if (!textToSummarize || typeof textToSummarize !== 'string' || textToSummarize.trim() === '') {
+    if ( !textToSummarize ){
+      throw new Error('invalid parameters')
+    }
+
+    if (typeof textToSummarize !== 'string' || textToSummarize.trim() === '') {
       return NextResponse.json({ error: 'Text to summarize is empty or invalid.' }, {status: 400});
     }
 
