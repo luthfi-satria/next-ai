@@ -15,7 +15,7 @@ export default function DashboardLayout({
       <div style={{ flexGrow: 1, display: 'flex', flexDirection: 'column' }}>
         <Header />
 
-        <main style={{ flexGrow: 1, padding: '20px', background: '#f8f9fa' }}>
+        <main style={{ flexGrow: 1, padding: '0px', background: '#f8f9fa' }}>
           {children}
         </main>
       </div>
