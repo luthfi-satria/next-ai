@@ -21,22 +21,27 @@ interface TableFiltersProps {
   filtersConfig: FilterConfig[] 
   onFilterChange: (filters: FilterValues) => void
   debounceTime?: number
+  initialFilterValues: FilterValues 
 }
 
-const baseInputClasses = "bg-gray-50 border border-gray-400 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500w-full bg-transparent placeholder:text-slate-400 text-slate-700 text-sm border border-slate-200 rounded pl-3 pr-8 py-2 transition duration-300 ease focus:outline-none focus:border-slate-400 hover:border-slate-400 shadow-sm focus:shadow-md appearance-none cursor-pointer"
+const baseInputClasses = "block w-full p-2.5 text-sm rounded-lg border focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease focus:outline-none focus:shadow-md appearance-none cursor-pointer " +
+                         "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 " +
+                         "text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 " +
+                         "hover:border-gray-400";
 
 const TableFilters: React.FC<TableFiltersProps> = ({
   filtersConfig,
   onFilterChange,
   debounceTime = 300,
+  initialFilterValues
 }) => {
-  const [filterValues, setFilterValues] = useState<FilterValues>(() => {
-    const initialValues: FilterValues = {}
-    filtersConfig.forEach(filter => {
-      initialValues[filter.id] = ''
-    })
-    return initialValues
-  })
+  const [filterValues, setFilterValues] = useState<FilterValues>(initialFilterValues)
+
+  useEffect(() => {
+    if (JSON.stringify(filterValues) !== JSON.stringify(initialFilterValues)) {
+      setFilterValues(initialFilterValues);
+    }
+  }, [initialFilterValues]);
 
   useEffect(() => {
     const handler = setTimeout(() => {
@@ -46,7 +51,7 @@ const TableFilters: React.FC<TableFiltersProps> = ({
     return () => {
       clearTimeout(handler)
     }
-  }, [filterValues, onFilterChange, debounceTime])
+  }, [filterValues, onFilterChange, debounceTime]); 
 
   const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -81,6 +86,7 @@ const TableFilters: React.FC<TableFiltersProps> = ({
                 name={filter.id}
                 value={filterValues[filter.id] || ''}
                 onChange={handleInputChange}
+                // Tambahkan pr-10 untuk menjaga ruang bagi ikon panah custom atau default
                 className={`${baseInputClasses} pr-10`}
                 >
                 <option value="">-- Pilih {filter.label.toLowerCase()} --</option>
@@ -90,20 +96,14 @@ const TableFilters: React.FC<TableFiltersProps> = ({
                     </option>
                 ))}
                 </select>
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.2" stroke="currentColor" className="h-5 w-5 ml-1 absolute top-2.5 right-2.5 text-slate-700">
+                {/* Ikon panah kustom untuk select box */}
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth="1.2" stroke="currentColor" className="h-5 w-5 ml-1 absolute top-2.5 right-2.5 text-gray-700 dark:text-gray-400 pointer-events-none">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 15 12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
                 </svg>
             </div>
           )}
         </div>
       ))}
-      {/* Tombol reset bisa ditambahkan jika diperlukan */}
-      {/* <button
-        onClick={() => setFilterValues(initialFilterState)} // Anda perlu menyimpan initialFilterState jika ingin tombol reset
-        className="px-4 py-2 bg-red-500 text-white rounded-md hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
-      >
-        Reset
-      </button> */}
     </div>
   )
 }

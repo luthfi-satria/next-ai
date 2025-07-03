@@ -60,15 +60,18 @@ export default function HomePage() {
       const params = {...sanitizeParams(currentFilters), page: String(currentPage), limit: String(limit)}
       const queryString = new URLSearchParams(params).toString()
       const response = await fetch(`/api/users?${queryString}`)
-      const data = await response.json()
-      if (response.ok && data.success) {
-        setUsers(data.results.data as User[])
-        setTotalUsers(data.results.total)
+      const ApiResponse: APIResponse = await response.json()
+
+      if (response.ok && ApiResponse.success) {
+        const data = ApiResponse.results.data
+
+        setUsers(data as User[])
+        setTotalUsers(ApiResponse.results.total)
       } else {
-        setError(data.message || 'Failed to fetch users')
+        setError(ApiResponse.message || 'Failed to fetch users')
       }
     } catch (err: any) {
-      setError(err.message)
+      // setError(err.message)
     } finally {
       setLoading(false)
       setIsSearch(false)
@@ -127,6 +130,10 @@ export default function HomePage() {
     setCurrentPage(page)
   }
 
+  const handleSearch = () => {
+    setIsSearch(true)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 flex flex-col items-center">
       <div className="w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
@@ -144,11 +151,12 @@ export default function HomePage() {
             <TableFilters
               filtersConfig={userFiltersConfig}
               onFilterChange={handleFilterChange}
+              initialFilterValues={currentFilters}
               // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
             />
             <div className='flex w-full gap-4 justify-end'>
               <button
-                onClick={() => setIsSearch(true)}
+                onClick={handleSearch}
                 className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 self-end" // self-end untuk alignment
               >
                 Find

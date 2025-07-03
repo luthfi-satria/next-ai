@@ -7,32 +7,38 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
     try {
-        const { search, roles, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
-
+        const { search, role, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
+        console.log({search, role, page, limit})
         const currPage = parseInt(page || '1', 10)
         const sizeParam = parseInt(limit || '10', 10)
         const from = (currPage - 1) * sizeParam
 
-        let esQuery: any = { match_all: {} }
-
+        let esQuery: any = { 
+            bool: {
+                must: [],
+                filter: []
+            }
+        }
         if (search){
-            esQuery = {
+            esQuery.bool.must.push({
                 multi_match: {
                     query: search,
-                    fields: ['name','email'],
-                    type: "phrase_prefix",
+                    fields: ['name.autocomplete', 'email.autocomplete'],
+                    type: "best_fields",
                 }
-            }
+            })
         }
 
-        if (roles && esQuery.multi_match){
-            esQuery = {
-                bool: {
-                    must: [esQuery],
-                    filter: [{ term: {roles: roles}}]
-                }
-            }
+        if (role){
+            esQuery.bool.filter.push({
+                term: { roles: role }
+            })
         }
+
+        if (esQuery.bool.must.length === 0 && esQuery.bool.filter.length === 0) {
+            esQuery = { match_all: {} }
+        }
+
         const esResult = await elasticsearch.search({
             index: 'users_index',
             body: { query: esQuery },
@@ -41,10 +47,6 @@ export async function GET(req: NextRequest) {
         })
 
         const esUserIds = esResult.hits.hits.map((hit: any) => hit._id)
-
-        if (esUserIds.length === 0) {
-            return NextResponse.json({ success: true, users: [] }, { status: 200 })
-        }
 
         const esUserObjectIds = esUserIds.map((idString: string) => new ObjectId(idString))
 
@@ -57,6 +59,7 @@ export async function GET(req: NextRequest) {
             total: esResult.hits.total.value,
             data: users
         }
+
         return NextResponse.json({ success: true, results: data }, { status: 200 })
     } catch (error: any) {
         console.error('Error in GET /api/users:', error)
