@@ -66,7 +66,7 @@ export default function EditUserPage(){
             })
             const data: APIResponse = await response.json()
             if (response.ok && data.success) {
-                setNewUser({...newUser, ...initUser}) // Reset form
+                setNewUser({...newUser, ...data.data}) // Reset form
                 setResponseMessage(data.message)
             } else {
                 setError(data.message || 'Failed to add user')

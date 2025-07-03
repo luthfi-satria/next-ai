@@ -79,9 +79,9 @@ class ElasticsearchService {
 
   public async search(options: SearchOptions): Promise<any> {
     const { index, query, size, from, body } = options
+
     const sizeParam = size ?? 20
     const startFrom = from ?? 0
-
     try {
       const result = await this.client.search({
         index,

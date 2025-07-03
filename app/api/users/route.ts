@@ -7,9 +7,11 @@ import { NextRequest, NextResponse } from 'next/server'
 
 export async function GET(req: NextRequest) {
     try {
-        const { search, roles, per_page } = Object.fromEntries(req.nextUrl.searchParams.entries())
-        console.log({search, roles, per_page})
-        const sizeParam = per_page ? parseInt(per_page as string, 10) : 20
+        const { search, roles, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
+
+        const currPage = parseInt(page || '1', 10)
+        const sizeParam = parseInt(limit || '10', 10)
+        const from = (currPage - 1) * sizeParam
 
         let esQuery: any = { match_all: {} }
 
@@ -33,10 +35,13 @@ export async function GET(req: NextRequest) {
         }
         const esResult = await elasticsearch.search({
             index: 'users_index',
-            body: { query: esQuery, size: sizeParam }
+            body: { query: esQuery },
+            size: sizeParam,
+            from: from
         })
 
         const esUserIds = esResult.hits.hits.map((hit: any) => hit._id)
+
         if (esUserIds.length === 0) {
             return NextResponse.json({ success: true, users: [] }, { status: 200 })
         }
@@ -44,10 +49,15 @@ export async function GET(req: NextRequest) {
         const esUserObjectIds = esUserIds.map((idString: string) => new ObjectId(idString))
 
         const usersCollection = await getMongoCollection<User>('users')
-        // const find = esUserObjectIds ? { _id: {$in: esUserObjectIds} } : {}
-        const users = await usersCollection.find({ _id: {$in: esUserObjectIds} }).toArray() // Fetch all users
 
-        return NextResponse.json({ success: true, data: users }, { status: 200 })
+        const users = await usersCollection.find({ _id: {$in: esUserObjectIds} }).toArray() // Fetch all users
+        const data = {
+            page: page,
+            per_page: limit,
+            total: esResult.hits.total.value,
+            data: users
+        }
+        return NextResponse.json({ success: true, results: data }, { status: 200 })
     } catch (error: any) {
         console.error('Error in GET /api/users:', error)
         return NextResponse.json({ success: false, message: 'Failed to fetch users', error: error.message }, { status: 500 })

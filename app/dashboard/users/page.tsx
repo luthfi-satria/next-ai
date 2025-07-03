@@ -9,14 +9,18 @@ import ConfirmModal from '@/components/ConfirmModal'
 import { APIResponse, SelectOption } from '@/models/interfaces/global.interfaces'
 import TableFilters, { FilterConfig, FilterValues } from '@/components/table/TableFilters'
 import { enumToSelectOptions, sanitizeParams } from '@/helpers/objectHelpers'
+import TablePagination from '@/components/table/TablePagination'
 
 export default function HomePage() {
   const [users, setUsers] = useState<User[]>([])
+  const [totalUsers, setTotalUsers] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
   const [isSearch, setIsSearch] = useState<boolean>(true)
   const [selectedUser, setSelectedUser] = useState<ObjectId>()
+  const [currentPage, setCurrentPage] = useState<number>(1)
+  const [limit, setLimit] = useState<number>(10)
   const userRoleOptions: SelectOption[] = enumToSelectOptions(UserRoles)
 
   const userFiltersConfig: FilterConfig[] = [
@@ -53,11 +57,13 @@ export default function HomePage() {
     setLoading(true)
     setError(null)
     try {
-      const queryString = new URLSearchParams(sanitizeParams(currentFilters)).toString()
+      const params = {...sanitizeParams(currentFilters), page: String(currentPage), limit: String(limit)}
+      const queryString = new URLSearchParams(params).toString()
       const response = await fetch(`/api/users?${queryString}`)
       const data = await response.json()
       if (response.ok && data.success) {
-        setUsers(data.data as User[])
+        setUsers(data.results.data as User[])
+        setTotalUsers(data.results.total)
       } else {
         setError(data.message || 'Failed to fetch users')
       }
@@ -116,11 +122,15 @@ export default function HomePage() {
     setSelectedUser(null)
   }
 
+  const handlePageChange = (page: number) => {
+    setIsSearch(true)
+    setCurrentPage(page)
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 flex flex-col items-center">
       <div className="w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-8">User Management Dashboard</h1>
-        {/* Tombol Tambah User */}
         <div className='flex flex-col mb-6'>
           <div className="mb-6">
             <Link
@@ -162,6 +172,13 @@ export default function HomePage() {
           </div>
         ) : (
           <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={totalUsers}
+              itemsPerPage={limit}
+              onPageChange={handlePageChange}
+            />
+
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-100">
                 <tr>
@@ -207,6 +224,12 @@ export default function HomePage() {
                 ))}
               </tbody>
             </table>
+            <TablePagination
+              currentPage={currentPage}
+              totalItems={totalUsers}
+              itemsPerPage={limit}
+              onPageChange={handlePageChange}
+            />
           </div>
         )}
       </div>

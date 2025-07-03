@@ -1,6 +1,7 @@
 export type APIResponse = {
     success: boolean,
-    data: any,
+    results?: any, 
+    data?: any,
     message: string
 }
 

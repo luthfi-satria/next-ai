@@ -1,10 +1,10 @@
 import React from 'react'
 
 interface TablePaginationProps {
-  currentPage: number // Halaman aktif saat ini
-  totalItems: number // Total item dari API (esResult.hits.total.value)
-  itemsPerPage: number // Jumlah item per halaman
-  onPageChange: (page: number) => void // Callback saat halaman berubah
+  currentPage: number 
+  totalItems: number 
+  itemsPerPage: number 
+  onPageChange: (page: number) => void 
 }
 
 const TablePagination: React.FC<TablePaginationProps> = ({
@@ -15,24 +15,19 @@ const TablePagination: React.FC<TablePaginationProps> = ({
 }) => {
   const totalPages = Math.ceil(totalItems / itemsPerPage)
 
-  // Jangan render pagination jika hanya ada 1 halaman atau kurang
   if (totalPages <= 1) {
     return null
   }
 
-  // Fungsi untuk membuat array nomor halaman yang akan ditampilkan
-  // Ini membantu menampilkan sejumlah halaman di sekitar halaman aktif
   const getPageNumbers = () => {
     const pageNumbers: (number | '...')[] = []
-    const maxPageButtons = 5 // Jumlah maksimal tombol angka halaman yang terlihat
+    const maxPageButtons = 5
 
     if (totalPages <= maxPageButtons) {
-      // Jika total halaman kurang dari atau sama dengan maxPageButtons, tampilkan semua
       for (let i = 1; i <= totalPages; i++) {
         pageNumbers.push(i)
       }
     } else {
-      // Jika total halaman banyak, tampilkan tombol ...
       const startPage = Math.max(1, currentPage - Math.floor(maxPageButtons / 2))
       const endPage = Math.min(totalPages, startPage + maxPageButtons - 1)
 
@@ -62,7 +57,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
   return (
     <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6 rounded-b-lg shadow-sm">
       <div className="flex-1 flex justify-between sm:hidden">
-        {/* Tombol prev/next untuk mobile (jika diperlukan) */}
+
         <button
           onClick={() => onPageChange(currentPage - 1)}
           disabled={currentPage === 1}
@@ -81,12 +76,12 @@ const TablePagination: React.FC<TablePaginationProps> = ({
       <div className="hidden sm:flex-1 sm:flex sm:items-center sm:justify-between">
         <div>
           <p className="text-sm text-gray-700">
-            Menampilkan{' '}
-            <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> sampai{' '}
+            Showing{' '}
+            <span className="font-medium">{(currentPage - 1) * itemsPerPage + 1}</span> /
             <span className="font-medium">
               {Math.min(currentPage * itemsPerPage, totalItems)}
-            </span>{' '}
-            dari <span className="font-medium">{totalItems}</span> hasil
+            </span>
+            {' '}from <span className="font-medium">{totalItems}</span> results
           </p>
         </div>
         <div>
