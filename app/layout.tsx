@@ -1,20 +1,20 @@
 // app/layout.tsx
-import './globals.css';
-import type { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import Head from 'next/head';
+import './globals.css'
+import type { Metadata } from 'next'
+import { Inter } from 'next/font/google'
+import Head from 'next/head'
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
   title: 'My Next.js Admin Dashboard',
   description: 'A comprehensive admin dashboard built with Next.js',
-};
+}
 
 export default function RootLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <html lang="en">
@@ -30,5 +30,5 @@ export default function RootLayout({
         {children}
       </body>
     </html>
-  );
+  )
 }

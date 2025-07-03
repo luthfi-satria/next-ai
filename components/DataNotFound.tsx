@@ -1,4 +1,4 @@
-import React from 'react';
+import React from 'react'
 
 const NoDataFound = ({
   title = "No Data Found",
@@ -46,7 +46,7 @@ const NoDataFound = ({
         Back
       </button>
     </div>
-  );
-};
+  )
+}
 
-export default NoDataFound;
+export default NoDataFound

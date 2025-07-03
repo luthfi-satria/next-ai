@@ -16,5 +16,5 @@ export default function Header() {
         <button style={{ padding: '8px 15px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Logout</button>
       </div>
     </header>
-  );
+  )
 }

@@ -1,5 +1,5 @@
 // components/Sidebar.tsx
-import Link from 'next/link';
+import Link from 'next/link'
 
 export default function Sidebar() {
   return (
@@ -41,5 +41,5 @@ export default function Sidebar() {
         </ul>
       </nav>
     </aside>
-  );
+  )
 }

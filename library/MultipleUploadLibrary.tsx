@@ -41,7 +41,7 @@ export default class MultipleUploadLibrary {
         this.resolvedUploadDir = path.join(process.cwd(), DEFAULT_UPLOAD_DIR, this.config?.uploadPath || '')
 
         if (!fs.existsSync(this.resolvedUploadDir)) {
-            fs.mkdirSync(this.resolvedUploadDir, { recursive: true });
+            fs.mkdirSync(this.resolvedUploadDir, { recursive: true })
         }
     }
 
@@ -57,7 +57,7 @@ export default class MultipleUploadLibrary {
             filter: ({ name, originalFilename, mimetype }) => {
                 const allowed = mimetype && currentConfig.mimeTypes!.includes(mimetype)
                 if (!allowed) {
-                    console.log(`File ${originalFilename} with type ${mimetype} is not allowed.`);
+                    console.log(`File ${originalFilename} with type ${mimetype} is not allowed.`)
                 }
                 return allowed
             }
@@ -80,9 +80,9 @@ export default class MultipleUploadLibrary {
                 const normalizedFiles: { [key: string]: FormidableFile[] } = {}
                 for (const key in files) {
                     if (Object.prototype.hasOwnProperty.call(files, key)) {
-                        const fileValue = files[key];
+                        const fileValue = files[key]
                         if (fileValue) {
-                            normalizedFiles[key] = Array.isArray(fileValue) ? fileValue as FormidableFile[] : [fileValue] as FormidableFile[];
+                            normalizedFiles[key] = Array.isArray(fileValue) ? fileValue as FormidableFile[] : [fileValue] as FormidableFile[]
                         }
                     }
                 }
@@ -108,7 +108,7 @@ export default class MultipleUploadLibrary {
                 try {
                     await this.unlinkFile(file.filepath)
                 } catch (unlinkErr) {
-                    console.error(`file temp failed to removed ${file.filepath}:`, unlinkErr);
+                    console.error(`file temp failed to removed ${file.filepath}:`, unlinkErr)
                 }
             }
         }

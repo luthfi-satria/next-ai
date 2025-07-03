@@ -1,30 +1,30 @@
 
 // pages/index.tsx
 'use client'
-import { Geist, Geist_Mono } from "next/font/google";
-import { useState } from "react";
+import { Geist, Geist_Mono } from "next/font/google"
+import { useState } from "react"
 
 // Penting: Pastikan styles/globals.css Anda mengimpor Tailwind CSS
 // dan tailwind.config.js Anda memiliki konfigurasi yang relevan (warna, shadows, animations)
 
 export default function Home() {
-  const [inputText, setInputText] = useState('');
-  const [summary, setSummary] = useState('Your summarized text will appear here. Start by entering some text above!');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [inputText, setInputText] = useState('')
+  const [summary, setSummary] = useState('Your summarized text will appear here. Start by entering some text above!')
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
+    event.preventDefault()
 
     if (!inputText.trim()) {
-      setSummary('Please enter some text to summarize.');
-      setError(null);
-      return;
+      setSummary('Please enter some text to summarize.')
+      setError(null)
+      return
     }
 
-    setIsLoading(true);
-    setError(null);
-    setSummary('');
+    setIsLoading(true)
+    setError(null)
+    setSummary('')
 
     try {
       const response = await fetch('/api/summarize', {
@@ -33,28 +33,28 @@ export default function Home() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ textToSummarize: inputText }),
-      });
+      })
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Something went wrong during summarization.');
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Something went wrong during summarization.')
       }
 
-      const data = await response.json();
-      setSummary(data.summary);
+      const data = await response.json()
+      setSummary(data.summary)
     } catch (err: any) {
-      setError(err.message);
-      setSummary('Failed to summarize text. Please try again.');
+      setError(err.message)
+      setSummary('Failed to summarize text. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   const handleClear = () => {
-    setInputText('');
-    setSummary('Your summarized text will appear here. Start by entering some text above!');
-    setError(null);
-  };
+    setInputText('')
+    setSummary('Your summarized text will appear here. Start by entering some text above!')
+    setError(null)
+  }
 
   return (
     <>
@@ -120,5 +120,5 @@ export default function Home() {
         </div>
       </div>
     </>
-  );
+  )
 }

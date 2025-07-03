@@ -1,12 +1,12 @@
 // app/dashboard/layout.tsx
-import Sidebar from '../../components/Sidebar'; 
-import Header from '../../components/Header';
-import React from 'react';
+import Sidebar from '../../components/Sidebar' 
+import Header from '../../components/Header'
+import React from 'react'
 
 export default function DashboardLayout({
   children,
 }: {
-  children: React.ReactNode;
+  children: React.ReactNode
 }) {
   return (
     <div style={{ display: 'flex', minHeight: '100vh' }}>
@@ -20,5 +20,5 @@ export default function DashboardLayout({
         </main>
       </div>
     </div>
-  );
+  )
 }

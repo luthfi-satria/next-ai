@@ -1,10 +1,10 @@
 // components/AdminLayout.tsx
-import Sidebar from './Sidebar';
-import Header from './Header';
-import React from 'react';
+import Sidebar from './Sidebar'
+import Header from './Header'
+import React from 'react'
 
 interface AdminLayoutProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export default function AdminLayout({ children }: AdminLayoutProps) {
@@ -18,5 +18,5 @@ export default function AdminLayout({ children }: AdminLayoutProps) {
         </main>
       </div>
     </div>
-  );
+  )
 }
