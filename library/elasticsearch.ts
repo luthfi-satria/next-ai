@@ -92,7 +92,8 @@ class ElasticsearchService {
       return result.body
     } catch (error) {
       console.error('Error searching Elasticsearch:', error)
-      throw error
+      // throw error
+      return error
     }
   }
 
@@ -107,7 +108,8 @@ class ElasticsearchService {
       return result.body
     } catch (error) {
       console.error('Error indexing document:', error)
-      throw error
+      // throw error
+      return error
     }
   }
 

@@ -14,3 +14,8 @@ export interface SelectOption {
   value: string;
   label: string;
 }
+
+export enum PublishStatus {
+  PUBLISH = 'PUBLISH',
+  DROP = 'DROP'
+}

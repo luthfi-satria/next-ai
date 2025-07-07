@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(req: NextRequest) {
     try {
         const { search, role, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
-        console.log({search, role, page, limit})
+
         const currPage = parseInt(page || '1', 10)
         const sizeParam = parseInt(limit || '10', 10)
         const from = (currPage - 1) * sizeParam
