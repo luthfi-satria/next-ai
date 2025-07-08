@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
 
         if (publish){
             esQuery.bool.filter.push({
-                term: { publish: publish }
+                term: { 'publish.keyword': publish }
             })
         }
 
@@ -46,33 +46,33 @@ export async function GET(req: NextRequest) {
 
         const esResult = await elasticsearch.search({
             index: CATEGORY_INDEX,
-            body: { query: esQuery },
+            query: esQuery,
             size: sizeParam,
             from: from
         })
 
-        console.log('esResult => ',esResult)
-
-        if(!esResult){
-            return NextResponse.json({success: false, results: []}, {status: 400})
-        }
-        const esIds = esResult.hits.hits.map((hit: any) => hit._id)
-
-        const esObjectIds = esIds.map((idString: string) => new ObjectId(idString))
-
-        const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
-
-        const category = await docCollection.find({ _id: {$in: esObjectIds} }).toArray() // Fetch all category
-        const data = {
+        const response = {
             page: page,
             per_page: limit,
-            total: esResult.hits.total.value,
-            data: category
+            total: 0,
+            data: []
         }
 
-        return NextResponse.json({ success: true, results: data }, { status: 200 })
+        if(!esResult.error){
+            const esIds = esResult.hits.hits.map((hit: any) => hit._id)
+    
+            const esObjectIds = esIds.map((idString: string) => new ObjectId(idString))
+    
+            const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
+    
+            const category = await docCollection.find({ _id: {$in: esObjectIds} }).toArray() // Fetch all category
+            response.total = esResult.hits.total.value
+            response.data = category
+        }
+        
+        return NextResponse.json({ success: true, results: response }, { status: 200 })
     } catch (error: any) {
-        console.error('Error in GET /api/category:', error)
+        console.error('Error in GET /api/categories:', error)
         return NextResponse.json({ success: false, message: 'Failed to fetch category', error: error.message }, { status: 500 })
     }
 }
@@ -104,7 +104,7 @@ export async function POST(req: NextRequest) {
 
         return NextResponse.json({ success: true, data: result.insertedId, message: 'Category created successfully' }, { status: 201 })
     } catch (error: any) {
-        console.error('Error in POST /api/category:', error)
+        console.error('Error in POST /api/categories:', error)
         return NextResponse.json({ success: false, message: 'Failed to create category', error: error.message }, { status: 500 })
     }
 }

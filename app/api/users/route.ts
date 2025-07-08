@@ -31,7 +31,7 @@ export async function GET(req: NextRequest) {
 
         if (role){
             esQuery.bool.filter.push({
-                term: { roles: role }
+                term: { 'roles.keyword': role }
             })
         }
 
@@ -46,18 +46,23 @@ export async function GET(req: NextRequest) {
             from: from
         })
 
-        const esUserIds = esResult.hits.hits.map((hit: any) => hit._id)
-
-        const esUserObjectIds = esUserIds.map((idString: string) => new ObjectId(idString))
-
-        const usersCollection = await getMongoCollection<User>('users')
-
-        const users = await usersCollection.find({ _id: {$in: esUserObjectIds} }).toArray() // Fetch all users
         const data = {
             page: page,
             per_page: limit,
-            total: esResult.hits.total.value,
-            data: users
+            total: 0,
+            data: []
+        }
+        
+        if(!esResult.error){
+            const esUserIds = esResult.hits.hits.map((hit: any) => hit._id)
+    
+            const esUserObjectIds = esUserIds.map((idString: string) => new ObjectId(idString))
+    
+            const usersCollection = await getMongoCollection<User>('users')
+    
+            const users = await usersCollection.find({ _id: {$in: esUserObjectIds} }).toArray() // Fetch all users
+            data.total = esResult.hits.total.value
+            data.data = users
         }
 
         return NextResponse.json({ success: true, results: data }, { status: 200 })

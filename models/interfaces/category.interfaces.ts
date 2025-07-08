@@ -10,14 +10,14 @@ export interface Category extends MongoDocument {
   updatedAt?: Date
 }
 
-export type NewCategory = {
+export type CategoryType = {
   name: string,
   description: string,
   publish: string,
 }
 
-export const initCategory: NewCategory = {
+export const initCategory: CategoryType = {
     name: '',
     description: '',
-    publish: PublishStatus.PUBLISH
+    publish: PublishStatus.PUBLISHED
 }

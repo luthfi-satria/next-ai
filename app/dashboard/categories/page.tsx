@@ -1,15 +1,15 @@
 // app/page.tsx
 'use client' // Pastikan ini ada jika menggunakan React hooks dan interaktivitas
 
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import ConfirmModal from '@/components/ConfirmModal'
+import TableFilters, { FilterConfig, FilterValues } from '@/components/table/TableFilters'
+import TablePagination from '@/components/table/TablePagination'
+import { enumToSelectOptions, sanitizeParams } from '@/helpers/objectHelpers'
+import { Category } from '@/models/interfaces/category.interfaces'
+import { APIResponse, PublishStatus, SelectOption } from '@/models/interfaces/global.interfaces'
 import { ObjectId } from 'mongodb'
 import Link from 'next/link'
-import ConfirmModal from '@/components/ConfirmModal'
-import { APIResponse, PublishStatus, SelectOption } from '@/models/interfaces/global.interfaces'
-import TableFilters, { FilterConfig, FilterValues } from '@/components/table/TableFilters'
-import { enumToSelectOptions, sanitizeParams } from '@/helpers/objectHelpers'
-import TablePagination from '@/components/table/TablePagination'
-import { Category } from '@/models/interfaces/category.interfaces'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 
 export default function HomePage() {
   const [Categories, setCategories] = useState<Category[]>([])
@@ -23,19 +23,19 @@ export default function HomePage() {
   const [limit, setLimit] = useState<number>(10)
   const publishStatus: SelectOption[] = enumToSelectOptions(PublishStatus)
 
-  const userFiltersConfig: FilterConfig[] = [
-    { id: 'search', label: 'Find Name/Email', type: 'text', placeholder: 'Type nama or email...' },
+  const categoryConfig: FilterConfig[] = [
+    { id: 'search', label: 'Find Name', type: 'text', placeholder: 'Type category name...' },
     { id: 'publish', label: 'Publish Status', type: 'select', options: publishStatus },
   ]
 
   const initialFilterState = useMemo(() => {
     const initialState: FilterValues = {}
-    userFiltersConfig.forEach(filter => {
+    categoryConfig.forEach(filter => {
       initialState[filter.id] = ''
     })
     return initialState
   }, [])
-  
+
   const [currentFilters, setCurrentFilters] = useState<FilterValues>(initialFilterState)
 
   const handleFilterChange = useCallback((filters: FilterValues) => {
@@ -48,7 +48,7 @@ export default function HomePage() {
   }, [initialFilterState])
 
   useEffect(() => {
-    if(!Categories || isSearch){
+    if (!Categories || isSearch) {
       fetchCategories()
     }
   }, [Categories, isSearch])
@@ -57,7 +57,7 @@ export default function HomePage() {
     setLoading(true)
     setError(null)
     try {
-      const params = {...sanitizeParams(currentFilters), page: String(currentPage), limit: String(limit)}
+      const params = { ...sanitizeParams(currentFilters), page: String(currentPage), limit: String(limit) }
       const queryString = new URLSearchParams(params).toString()
       const response = await fetch(`/api/categories?${queryString}`)
       const ApiResponse: APIResponse = await response.json()
@@ -89,9 +89,9 @@ export default function HomePage() {
     </div>
   )
 
-  const handleDelete = async() => {
-    if(SelectedCategory){
-      try{
+  const handleDelete = async () => {
+    if (SelectedCategory) {
+      try {
         const response = await fetch(`/api/categories/${SelectedCategory}`, {
           method: 'DELETE',
           headers: {
@@ -101,13 +101,12 @@ export default function HomePage() {
 
         const data: APIResponse = await response.json()
 
-        console.log(`delete`, response)
         if (response.ok && data.success) {
           fetchCategories()
         }
-      }catch(error: any){
+      } catch (error: any) {
         setError(error.message)
-      }finally{
+      } finally {
         setIsModalOpen(false)
         setSelectedCategory(null)
       }
@@ -141,18 +140,18 @@ export default function HomePage() {
         <div className='flex flex-col mb-6'>
           <div className="mb-6">
             <Link
-              href="/dashboard/category/add"
+              href="/dashboard/categories/add"
               className="py-3 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out"
             >
-              ✨ Add New User
+              ✨ Add New Category
             </Link>
           </div>
           <div className='w-full flex flex-col'>
             <TableFilters
-              filtersConfig={userFiltersConfig}
+              filtersConfig={categoryConfig}
               onFilterChange={handleFilterChange}
               initialFilterValues={currentFilters}
-              // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
+            // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
             />
             <div className='flex w-full gap-4 justify-end'>
               <button
@@ -169,7 +168,7 @@ export default function HomePage() {
               </button>
             </div>
           </div>
-          
+
         </div>
 
         {/* Tabel Category List */}
@@ -226,14 +225,14 @@ export default function HomePage() {
                     </td>
 
                     <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                      <Link 
-                        className="text-indigo-600 hover:text-indigo-900 mr-4" 
-                        href={`/dashboard/category/details/${cat._id}`}
+                      <Link
+                        className="text-indigo-600 hover:text-indigo-900 mr-4"
+                        href={`/dashboard/categories/details/${cat._id}`}
                         replace={true}
                       >Edit</Link>
-                      <button className="text-red-600 hover:text-red-900" onClick={ () => handleConfirmDelete(cat._id)}>Delete</button>
+                      <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(cat._id)}>Delete</button>
                     </td>
-                   
+
                   </tr>
                 ))}
               </tbody>
@@ -248,7 +247,7 @@ export default function HomePage() {
         )}
       </div>
 
-      <ConfirmModal 
+      <ConfirmModal
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         onConfirm={handleDelete}

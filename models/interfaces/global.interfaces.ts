@@ -16,6 +16,6 @@ export interface SelectOption {
 }
 
 export enum PublishStatus {
-  PUBLISH = 'PUBLISH',
-  DROP = 'DROP'
+  PUBLISHED = 'PUBLISHED',
+  UNPUBLISHED = 'UNPUBLISHED'
 }

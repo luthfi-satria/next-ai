@@ -83,17 +83,19 @@ class ElasticsearchService {
     const sizeParam = size ?? 20
     const startFrom = from ?? 0
     try {
-      const result = await this.client.search({
+      const esBody = {
         index,
         body: body || { query },
         size: sizeParam,
         from: startFrom,
-      })
+      }
+      const result = await this.client.search(esBody)
+
       return result.body
     } catch (error) {
       console.error('Error searching Elasticsearch:', error)
       // throw error
-      return error
+      return {error: true, message: error}
     }
   }
 
