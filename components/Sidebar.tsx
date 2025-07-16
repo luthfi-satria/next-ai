@@ -3,12 +3,13 @@ import Link from 'next/link'
 
 export default function Sidebar() {
   const sidebarMenu = [
-    {link: '/dashboard', label: 'dashboard'},
-    {link: '/dashboard/users', label: 'users'},
-    {link: '/dashboard/categories', label: 'categories'},
-    {link: '/dashboard/plagiarism-tools', label: 'plagiarism tools'},
-    {link: '/dashboard/simple_ai', label: 'simple ai'},
-    {link: '/dashboard/settings', label: 'settings'},
+    { link: '/dashboard', label: 'dashboard' },
+    { link: '/dashboard/users', label: 'users' },
+    { link: '/dashboard/categories', label: 'categories' },
+    { link: '/dashboard/stores', label: 'stores' },
+    { link: '/dashboard/plagiarism-tools', label: 'plagiarism tools' },
+    { link: '/dashboard/simple_ai', label: 'simple ai' },
+    { link: '/dashboard/settings', label: 'settings' },
   ]
   return (
     <aside style={{

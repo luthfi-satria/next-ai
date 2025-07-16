@@ -1,4 +1,4 @@
-PUT /categories_index
+PUT /stores_index
 {
   "settings": {
     "analysis": {
@@ -46,14 +46,59 @@ PUT /categories_index
           }
         }
       },
-      "publish": {
+      "address": {
         "type": "text",
         "fields": {
           "keyword": {
             "type": "keyword",
             "ignore_above": 256
+          },
+          "autocomplete": { 
+            "type": "text",
+            "analyzer": "autocomplete_analyzer",
+            "search_analyzer": "standard"
           }
         }
+      },
+      "city": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "autocomplete": { 
+            "type": "text",
+            "analyzer": "autocomplete_analyzer",
+            "search_analyzer": "standard"
+          }
+        }
+      },
+      "province": {
+        "type": "text",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          },
+          "autocomplete": { 
+            "type": "text",
+            "analyzer": "autocomplete_analyzer",
+            "search_analyzer": "standard"
+          }
+        }
+      },
+      "postalCode": {
+        "type": "keyword"
+      },
+      "publish": {
+        "type": "keyword"
+      },
+      "location":{
+        "type": "geo_point"
+      },
+      "uuid_id": {
+        "type": "keyword",
       }
     }
   }

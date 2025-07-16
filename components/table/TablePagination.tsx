@@ -1,10 +1,10 @@
 import React from 'react'
 
 interface TablePaginationProps {
-  currentPage: number 
-  totalItems: number 
-  itemsPerPage: number 
-  onPageChange: (page: number) => void 
+  currentPage: number
+  totalItems: number
+  itemsPerPage: number
+  onPageChange: (page: number) => void
 }
 
 const TablePagination: React.FC<TablePaginationProps> = ({
@@ -100,7 +100,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
             {pageNumbersToShow.map((page, index) =>
               page === '...' ? (
                 <span
-                  key={index}
+                  key={`pg-${index}`}
                   className="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700"
                 >
                   ...
@@ -110,11 +110,10 @@ const TablePagination: React.FC<TablePaginationProps> = ({
                   key={page}
                   onClick={() => onPageChange(page as number)}
                   aria-current={currentPage === page ? 'page' : undefined}
-                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${
-                    currentPage === page
-                      ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
-                      : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'
-                  }`}
+                  className={`relative inline-flex items-center px-4 py-2 border text-sm font-medium ${currentPage === page
+                    ? 'z-10 bg-blue-50 border-blue-500 text-blue-600'
+                    : 'bg-white border-gray-300 text-gray-700 hover:bg-gray-100'
+                    }`}
                 >
                   {page}
                 </button>

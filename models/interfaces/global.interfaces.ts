@@ -6,8 +6,8 @@ export type APIResponse = {
 }
 
 export type MapLocation = {
-    latitude: number,
-    longitude: number,
+    lat: number,
+    lon: number,
 }
 
 export interface SelectOption {

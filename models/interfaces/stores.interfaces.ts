@@ -1,13 +1,40 @@
 import { Document as MongoDocument, ObjectId } from "mongodb"
-import { MapLocation } from "./global.interfaces"
+import { MapLocation, PublishStatus } from "./global.interfaces"
 
 export interface Stores extends MongoDocument{
     _id?: ObjectId
+    uuid_id: string
     name: string
-    description: string
     address: string
+    city: string
+    province: string
+    postalCode: string
     location: MapLocation
+    publish: string,
     logo?: string
     createdAt?: Date
     updatedAt?: Date
+}
+
+export type StoreType = {
+    name: string,
+    address: string,
+    city: string
+    province: string
+    postalCode: string
+    location: MapLocation,
+    publish: string,
+}
+
+export const initStore: StoreType = {
+    name: '',
+    address: '',
+    city: '',
+    province: '',
+    postalCode: '',
+    location: {
+        lat: -6.5500,
+        lon: 106.8047,
+    },
+    publish: PublishStatus.PUBLISHED
 }
