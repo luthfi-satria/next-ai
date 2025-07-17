@@ -1,5 +1,6 @@
 'use client'
-import { APIResponse, PublishStatus } from "@/models/interfaces/global.interfaces"
+import { PUSHAPI } from "@/helpers/apiRequest"
+import { PublishStatus } from "@/models/interfaces/global.interfaces"
 import { StoreType, initStore } from "@/models/interfaces/stores.interfaces"
 import dynamic from "next/dynamic"
 import Link from "next/link"
@@ -13,7 +14,7 @@ const DynamicMapComponent = dynamic(
 
 export default function AddCategoryPage() {
     const [store, setStore] = useState<StoreType>(initStore)
-    const [position, setPosition] = useState({ lat: initStore.location.lat, lng: initStore.location.lon });
+    const [position, setPosition] = useState({ lat: initStore.location.coordinates[0], lng: initStore.location.coordinates[1] });
 
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -29,8 +30,8 @@ export default function AddCategoryPage() {
         setStore((prev) => ({
             ...prev,
             location: {
-                lat: newMapPosition.lat,
-                lon: newMapPosition.lng
+                type: 'point',
+                coordinates: [newMapPosition.lat, newMapPosition.lng]
             }
         }));
     }, []);
@@ -40,20 +41,10 @@ export default function AddCategoryPage() {
         setIsSubmitting(true)
         setError(null)
         try {
-            // Pastikan `store.location` sudah terupdate dari peta
-            const response = await fetch('/api/stores', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(store),
-            })
-            const data: APIResponse = await response.json()
-
+            const { response, data } = await PUSHAPI('POST', '/api/stores', JSON.stringify(store))
             if (response.ok && data.success) {
-                // Reset form, termasuk posisi peta ke default initStore
                 setStore({ ...initStore });
-                setPosition({ lat: initStore.location.lat, lng: initStore.location.lon });
+                setPosition({ lat: initStore.location.coordinates[0], lng: initStore.location.coordinates[1] });
                 setResponseMessage(data.message)
             } else {
                 setError(data.message || 'Failed to add store')
@@ -95,9 +86,9 @@ export default function AddCategoryPage() {
     return (
         <>
             <div className="w-1/2 sm:w-full md:w-3/4 bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
-                <div className="flex flex-row gap-2 justify-stretch mb-4">
+                <div className="flex flex-row gap-2 justify-stretch mb-4 text-gray-800">
                     <Link className="w-[100px] p-4 border rounded-md text-center align-middle" href="/dashboard/stores">Back</Link>
-                    <h2 className="h-full text-xl sm:text-2xl font-bold text-gray-800 p-2 flex-grow">Add Store</h2>
+                    <h2 className="h-full text-xl sm:text-2xl font-bold p-2 flex-grow">Add Store</h2>
                 </div>
                 {(isSubmitting || error || responseMessage) && handleResponse()} {/* Render hanya jika ada pesan */}
                 <form onSubmit={handleAdd} className="space-y-4">

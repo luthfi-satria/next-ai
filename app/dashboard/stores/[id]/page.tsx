@@ -1,6 +1,7 @@
 'use client'
 import NoDataFound from "@/components/DataNotFound"
-import { APIResponse, PublishStatus } from "@/models/interfaces/global.interfaces"
+import { GETAPICALL, PUSHAPI } from "@/helpers/apiRequest"
+import { PublishStatus } from "@/models/interfaces/global.interfaces"
 import { StoreType, initStore } from "@/models/interfaces/stores.interfaces"
 import { ParamValue } from "next/dist/server/request/params"
 import dynamic from "next/dynamic"
@@ -17,7 +18,7 @@ const DynamicMapComponent = dynamic(
 
 export default function EditStore() {
     const [Store, setStore] = useState<StoreType>(initStore)
-    const [position, setPosition] = useState({ lat: initStore.location.lat, lng: initStore.location.lon });
+    const [position, setPosition] = useState({ lat: initStore.location.coordinates[0], lng: initStore.location.coordinates[1] });
 
     const [isLoading, setIsLoading] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
@@ -36,24 +37,16 @@ export default function EditStore() {
     const handleGetStore = async (id: ParamValue) => {
         try {
             setIsLoading(true)
-            const response = await fetch(`/api/stores/${id}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            const data: APIResponse = await response.json()
-
-            if (response.ok && data.success) {
-                setStore({ ...Store, ...data.data })
-                console.log(data.data)
+            const { response, ApiResponse } = await GETAPICALL(`/api/stores/${id}`)
+            if (response.ok && ApiResponse.success) {
+                setStore({ ...Store, ...ApiResponse.data })
+                console.log(ApiResponse.data)
                 setPosition({
-                    lat: data.data.location.coordinates[0],
-                    lng: data.data.location.coordinates[1]
+                    lat: ApiResponse.data.location.coordinates[0],
+                    lng: ApiResponse.data.location.coordinates[1]
                 })
             } else {
-                setError(data.message || 'Failed to fetch stores data')
+                setError(ApiResponse.message || 'Failed to fetch stores data')
             }
         } catch (error: any) {
             setError(error.message)
@@ -73,14 +66,7 @@ export default function EditStore() {
         setIsSubmitting(true)
         setError(null)
         try {
-            const response = await fetch(`/api/stores/`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(Store),
-            })
-            const data: APIResponse = await response.json()
+            const { response, data } = await PUSHAPI('PUT', '/api/stores/', JSON.stringify(Store))
             if (response.ok && data.success) {
                 setStore({ ...Store, ...data.data }) // Reset form
                 setResponseMessage(data.message)
@@ -122,8 +108,8 @@ export default function EditStore() {
         setStore((prev) => ({
             ...prev,
             location: {
-                lat: newMapPosition.lat,
-                lon: newMapPosition.lng
+                type: 'point',
+                coordinates: [newMapPosition.lat, newMapPosition.lng]
             }
         }));
     }, []);
@@ -138,9 +124,9 @@ export default function EditStore() {
             {Store && !isLoading && (
                 <div className="w-1/2 sm:w-full md:w-3/4 bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
                     {handleResponse()}
-                    <div className="flex flex-row gap-2 justify-stretch mb-4">
-                        <Link className="w-[100px] p-4 border rounded-md text-center align-middle" href="/dashboard/categories">Back</Link>
-                        <h2 className="h-full text-xl sm:text-2xl font-bold text-gray-800 p-2 flex-grow">Edit Store</h2>
+                    <div className="flex flex-row gap-2 justify-stretch mb-4 text-gray-800">
+                        <Link className="w-[100px] p-4 border rounded-md text-center align-middle" href="/dashboard/stores">Back</Link>
+                        <h2 className="h-full text-xl sm:text-2xl font-bold  p-2 flex-grow">Edit Store</h2>
                     </div>
                     <form onSubmit={handleUpdateStore} className="space-y-4">
                         <div>

@@ -1,6 +1,7 @@
 'use client'
+import { PUSHAPI } from "@/helpers/apiRequest"
 import { CategoryType, initCategory } from "@/models/interfaces/category.interfaces"
-import { APIResponse, PublishStatus } from "@/models/interfaces/global.interfaces"
+import { PublishStatus } from "@/models/interfaces/global.interfaces"
 import Link from "next/link"
 import { useState } from "react"
 
@@ -20,15 +21,7 @@ export default function AddCategoryPage() {
         setIsSubmitting(true)
         setError(null)
         try {
-            const response = await fetch('/api/categories', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(category),
-            })
-            const data: APIResponse = await response.json()
-
+            const { response, data } = await PUSHAPI('POST', '/api/categories', JSON.stringify(category))
             if (response.ok && data.success) {
                 setCategory({ ...category, ...initCategory }) // Reset form
                 setResponseMessage(data.message)

@@ -98,3 +98,12 @@ docker exec my-mongo-container mongoimport \
   --username user \
   --password root \
   --authenticationDatabase admin
+
+# Elasticsearch: Adding a New Schema
+To create a new schema (index) in Elasticsearch, follow these steps:
+1. Define the Schema: Create your schema definition within the model/interfaces folder (e.g., a TypeScript interface).
+2. Create the Elasticsearch Document Mapping:
+    * Craft the Elasticsearch schema mapping that corresponds to the schema definition you created in the model/interfaces folder.
+    * Open your Kibana URL: http://localhost:5601/app/dev_tools#/console
+    * Copy the prepared schema mapping JSON.
+    * Execute it via the Kibana Dev Tools console.

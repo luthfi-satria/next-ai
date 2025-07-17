@@ -33,8 +33,8 @@ export const initStore: StoreType = {
     province: '',
     postalCode: '',
     location: {
-        lat: -6.5500,
-        lon: 106.8047,
+        type: "point",
+        coordinates: [-6.5500, 106.8047]
     },
     publish: PublishStatus.PUBLISHED
 }

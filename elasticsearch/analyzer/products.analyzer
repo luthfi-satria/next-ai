@@ -1,0 +1,184 @@
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "text_analyzer": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "stop",
+            "porter_stem"
+          ]
+        },
+        "autocomplete_analyzer": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "edge_ngram_front"
+          ]
+        },
+        "autocomplete_search_analyzer": {
+          "tokenizer": "standard",
+          "filter": ["lowercase"]
+        }
+      },
+      "filter": {
+        "edge_ngram_front": {
+          "type": "edge_ngram",
+          "min_gram": 2,
+          "max_gram": 15
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      // Basic Identifiers
+      "uuid": {
+        "type": "keyword" // Unique ID for the product
+      },
+      "storeUUId": {
+        "type": "keyword" // Relates product to a specific store
+      },
+      "sku": {
+        "type": "keyword" // Stock Keeping Unit - exact match
+      },
+      "slug": {
+        "type": "keyword" // For direct URL matching
+      },
+
+      // Text Fields for Search and Display
+      "name": {
+        "type": "text",
+        "analyzer": "text_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword", // For exact match search or aggregation
+            "ignore_above": 256
+          },
+          "autocomplete": { // For search-as-you-type suggestions
+            "type": "text",
+            "analyzer": "autocomplete_analyzer",
+            "search_analyzer": "autocomplete_search_analyzer"
+          }
+        }
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "text_analyzer"
+      },
+      "brand": { // Based on Brand interface { name: string, logoUrl: string }
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "text",
+            "analyzer": "text_analyzer",
+            "fields": {
+              "keyword": {
+                "type": "keyword",
+                "ignore_above": 256
+              }
+            }
+          },
+          "logoUrl": {
+            "type": "keyword",
+            "index": false // No need to search or filter by logo URL
+          }
+        }
+      },
+      "category": { // Single string category, but could also be array
+        "type": "keyword", // For filtering/faceting
+        "fields": {
+          "text": { // Also allow full-text search on categories
+            "type": "text",
+            "analyzer": "text_analyzer"
+          }
+        }
+      },
+      "images": { // Array of strings (URLs)
+        "type": "keyword", // Store URLs as keywords
+        "index": false // Typically not used for search/filter directly
+      },
+      "tags": { // Array of strings
+        "type": "keyword", // For filtering/faceting by tags
+        "fields": {
+          "text": { // Also allow full-text search on tags
+            "type": "text",
+            "analyzer": "text_analyzer"
+          }
+        }
+      },
+
+      // Numerical & Enum Fields for Filtering, Sorting, Aggregation
+      "price": {
+        "type": "float"
+      },
+      "currency": { // Based on Currency enum/type
+        "type": "keyword"
+      },
+      "stockQty": {
+        "type": "integer"
+      },
+      "minOrder": {
+        "type": "integer"
+      },
+      "weight": {
+        "type": "float"
+      },
+      "averageRating": {
+        "type": "float"
+      },
+      "availability": { // Based on Availability enum
+        "type": "keyword"
+      },
+      "status": { // Based on PublishStatus enum/type
+        "type": "keyword"
+      },
+
+      // Date Fields
+      "createdAt": {
+        "type": "date"
+      },
+      "updatedAt": {
+        "type": "date"
+      },
+
+      // Nested Fields - Using "nested" for arrays of objects that need individual querying
+      "discount": { // Based on Discount type { type: string, value: number, start: Date, end: Date }
+        "type": "nested",
+        "properties": {
+          "type": { "type": "keyword" },
+          "value": { "type": "float" },
+          "start": { "type": "date" },
+          "end": { "type": "date" }
+        }
+      },
+      "options": { // Based on ProductOption type { name: string, values: string[] }
+        "type": "nested",
+        "properties": {
+          "name": { "type": "keyword" }, // e.g., "color", "size"
+          "values": { "type": "keyword" } // e.g., ["Red", "Blue"]
+        }
+      },
+      "variants": { // Based on ProductVariants type
+        "type": "nested",
+        "properties": {
+          "sku": { "type": "keyword" },
+          "price": { "type": "float" },
+          "stockQty": { "type": "integer" },
+          "images": { // Images specific to variant
+            "type": "keyword",
+            "index": false
+          },
+          "attributes": { // Based on ProductVariantAttributes type { name: string, value: string }
+            "type": "nested", // Use nested here if you need to query attributes like color:'Red' AND size:'M' within a single variant
+            "properties": {
+              "name": { "type": "keyword" }, // e.g., "color", "size"
+              "value": { "type": "keyword" } // e.g., "Red", "M"
+            }
+          }
+        }
+      }
+    }
+  }
+}

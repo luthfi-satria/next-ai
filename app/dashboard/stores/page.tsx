@@ -1,10 +1,12 @@
 'use client'
 
-import ConfirmModal from '@/components/ConfirmModal'
-import TableFilters, { FilterConfig, FilterValues } from '@/components/table/TableFilters'
+import { AdminContentWrapperComponent, ContentProps, translateName } from '@/components/AdminContentWrapper'
+import TableContentComponent from '@/components/table/TableContents'
+import { FilterConfig, FilterValues } from '@/components/table/TableFilters'
 import TablePagination from '@/components/table/TablePagination'
-import { enumToSelectOptions, sanitizeParams } from '@/helpers/objectHelpers'
-import { APIResponse, PublishStatus, SelectOption } from '@/models/interfaces/global.interfaces'
+import { PopulateTable, PUSHAPI } from '@/helpers/apiRequest'
+import { enumToSelectOptions } from '@/helpers/objectHelpers'
+import { PublishStatus, SelectOption } from '@/models/interfaces/global.interfaces'
 import { Stores } from '@/models/interfaces/stores.interfaces'
 import { ObjectId } from 'mongodb'
 import Link from 'next/link'
@@ -56,11 +58,7 @@ export default function HomePage() {
     setLoading(true)
     setError(null)
     try {
-      const params = { ...sanitizeParams(currentFilters), page: String(currentPage), limit: String(limit) }
-      const queryString = new URLSearchParams(params).toString()
-      const response = await fetch(`/api/stores?${queryString}`)
-      const ApiResponse: APIResponse = await response.json()
-
+      const { response, ApiResponse } = await PopulateTable('/api/stores', currentFilters, currentPage, limit)
       if (response.ok && ApiResponse.success) {
         const data = ApiResponse.results.data
 
@@ -91,15 +89,7 @@ export default function HomePage() {
   const handleDelete = async () => {
     if (SelectedStore) {
       try {
-        const response = await fetch(`/api/stores/${SelectedStore}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-        })
-
-        const data: APIResponse = await response.json()
-
+        const { response, data } = await PUSHAPI('DELETE', `/api/stores/${SelectedStore}`, '')
         if (response.ok && data.success) {
           fetchStores()
         }
@@ -131,136 +121,75 @@ export default function HomePage() {
   const handleSearch = () => {
     setIsSearch(true)
   }
+  const translateAction = (value: ObjectId, rowData: Record<string, any>) => {
+    return (
+      <>
+        <Link
+          className="text-indigo-600 hover:text-indigo-900 mr-4"
+          href={`/dashboard/stores/${value}`}
+          replace={true}
+        >Edit
+        </Link>
+        <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(value)}>Delete</button>
+      </>
+    )
+  }
 
+  const pageProps: ContentProps = {
+    title: 'Store Management',
+    addButton: {
+      href: '/dashboard/stores/add',
+      label: 'Add new stores'
+    },
+    addFilter: {
+      config: formConfig,
+      onFilterChange: handleFilterChange,
+      currentFilters: currentFilters,
+      onSearch: handleSearch,
+      onReset: handleResetFilters,
+    },
+    modal: {
+      confirmText: 'Yes, remove!',
+      cancelText: 'No',
+      isOpen: isModalOpen,
+      onClose: handleCloseModal,
+      onConfirm: handleDelete,
+      title: 'Remove store'
+    },
+  }
+
+  const TableColumn = [
+    { name: 'Name', columnKey: 'name', translater: translateName },
+    { name: 'City', columnKey: 'city' },
+    { name: 'Province', columnKey: 'province' },
+    { name: 'Status', columnKey: 'publish' },
+    { name: 'Action', columnKey: '_id', translater: translateAction },
+  ]
   return (
-    <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center">
-      <div className="w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
-        <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-8">Stores Management Dashboard</h1>
-        <div className='flex flex-col mb-6'>
-          <div className="mb-6">
-            <Link
-              href="/dashboard/stores/add"
-              className="py-3 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out"
-            >
-              ✨ Add New Stores
-            </Link>
-          </div>
-          <div className='w-full flex flex-col'>
-            <TableFilters
-              filtersConfig={formConfig}
-              onFilterChange={handleFilterChange}
-              initialFilterValues={currentFilters}
-            // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
-            />
-            <div className='flex w-full gap-4 justify-end'>
-              <button
-                onClick={handleSearch}
-                className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 self-end" // self-end untuk alignment
-              >
-                Find
-              </button>
-              <button
-                onClick={handleResetFilters}
-                className="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 self-end" // self-end untuk alignment
-              >
-                Reset Filter
-              </button>
-            </div>
-          </div>
-
+    <AdminContentWrapperComponent props={pageProps}>
+      {/* Tabel Store List */}
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-5 mt-8">Registered Store</h2>
+      {Stores && Stores.length === 0 ? (
+        <div className="text-gray-600 text-center py-8 text-lg bg-gray-50 rounded-lg border border-gray-200">
+          <p>No stores found. Click "Add New Store" to get started!</p>
         </div>
-
-        {/* Tabel Store List */}
-        <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-5 mt-8">Registered Store</h2>
-        {Stores && Stores.length === 0 ? (
-          <div className="text-gray-600 text-center py-8 text-lg bg-gray-50 rounded-lg border border-gray-200">
-            <p>No stores found. Click "Add New Store" to get started!</p>
-          </div>
-        ) : (
-          <div className='shadow-md rounded-t-md border border-gray-200'>
-            <TablePagination
-              currentPage={currentPage}
-              totalItems={TotalStores}
-              itemsPerPage={limit}
-              onPageChange={handlePageChange}
-            />
-            <div className="overflow-x-auto shadow-md">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-100">
-                  <tr>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      City
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Province
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                      Actions
-                    </th>
-                    {/* Tambahkan kolom lain jika diperlukan, misal: <th ...>Actions</th> */}
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {Stores && Stores.map((data, key) => (
-                    <tr key={`data_${key}`} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-semibold text-lg">
-                            {data.name.charAt(0).toUpperCase()}
-                          </div>
-                          <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">{data.name}</div>
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-700">{data.city}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-700">{data.province}</div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-700">{data.publish}</div>
-                      </td>
-
-                      <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                        <Link
-                          className="text-indigo-600 hover:text-indigo-900 mr-4"
-                          href={`/dashboard/stores/${data._id}`}
-                          replace={true}
-                        >Edit</Link>
-                        <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(data._id)}>Delete</button>
-                      </td>
-
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-            <TablePagination
-              currentPage={currentPage}
-              totalItems={TotalStores}
-              itemsPerPage={limit}
-              onPageChange={handlePageChange}
-            />
-          </div>
-        )}
-      </div>
-
-      <ConfirmModal
-        isOpen={isModalOpen}
-        onClose={handleCloseModal}
-        onConfirm={handleDelete}
-        title='Remove store'
-        confirmText='Yes, Remove!'
-        cancelText='No'
-      />
-    </div>
+      ) : (
+        <div className='shadow-md rounded-t-md border border-gray-200'>
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={TotalStores}
+            itemsPerPage={limit}
+            onPageChange={handlePageChange}
+          />
+          <TableContentComponent column={TableColumn} data={Stores} />
+          <TablePagination
+            currentPage={currentPage}
+            totalItems={TotalStores}
+            itemsPerPage={limit}
+            onPageChange={handlePageChange}
+          />
+        </div>
+      )}
+    </AdminContentWrapperComponent>
   )
 }

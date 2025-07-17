@@ -102,8 +102,8 @@ export async function POST(req: NextRequest) {
             province: newCollection.province,
             postalCode: newCollection.postalCode,
             location:{
-                lat: newCollection.location.lat,
-                lon: newCollection.location.lon,
+                lat: newCollection.location.coordinates[0],
+                lon: newCollection.location.coordinates[1],
             },
             publish: newCollection.publish,
         }
@@ -142,7 +142,7 @@ export async function PUT(req: NextRequest){
         city: result.city,
         province: result.province,
         postalCode: result.postalCode,
-        location: {lat: result.location.lat, lon: result.location.lon},
+        location: {lat: result.location.coordinates[0], lon: result.location.coordinates[1]},
         publish: result.publish,
     }
 

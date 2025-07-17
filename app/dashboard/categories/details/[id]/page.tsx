@@ -1,7 +1,8 @@
 'use client'
 import NoDataFound from "@/components/DataNotFound"
+import { GETAPICALL, PUSHAPI } from "@/helpers/apiRequest"
 import { CategoryType, initCategory } from "@/models/interfaces/category.interfaces"
-import { APIResponse, PublishStatus } from "@/models/interfaces/global.interfaces"
+import { PublishStatus } from "@/models/interfaces/global.interfaces"
 import { ParamValue } from "next/dist/server/request/params"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
@@ -26,18 +27,11 @@ export default function EditCategory() {
     const handleGetCategory = async (id: ParamValue) => {
         try {
             setIsLoading(true)
-            const response = await fetch(`/api/categories/${id}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            const data: APIResponse = await response.json()
-            if (response.ok && data.success) {
-                setCategory({ ...Category, ...data.data })
+            const { response, ApiResponse } = await GETAPICALL(`/api/categories/${id}`)
+            if (response.ok && ApiResponse.success) {
+                setCategory({ ...Category, ...ApiResponse.data })
             } else {
-                setError(data.message || 'Failed to fetch Categories data')
+                setError(ApiResponse.message || 'Failed to fetch Categories data')
             }
         } catch (error: any) {
             setError(error.message)
@@ -57,14 +51,7 @@ export default function EditCategory() {
         setIsSubmitting(true)
         setError(null)
         try {
-            const response = await fetch(`/api/categories/`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(Category),
-            })
-            const data: APIResponse = await response.json()
+            const { response, data } = await PUSHAPI('PUT', '/api/categories/', JSON.stringify(Category))
             if (response.ok && data.success) {
                 setCategory({ ...Category, ...data.data }) // Reset form
                 setResponseMessage(data.message)

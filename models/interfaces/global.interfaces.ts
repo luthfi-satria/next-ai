@@ -6,8 +6,8 @@ export type APIResponse = {
 }
 
 export type MapLocation = {
-    lat: number,
-    lon: number,
+    type: string,
+    coordinates: number[]
 }
 
 export interface SelectOption {
@@ -18,4 +18,9 @@ export interface SelectOption {
 export enum PublishStatus {
   PUBLISHED = 'PUBLISHED',
   UNPUBLISHED = 'UNPUBLISHED'
+}
+
+export enum Currency {
+  DOLLAR = "$",
+  RUPIAH = "IDR"
 }

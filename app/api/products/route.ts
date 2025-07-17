@@ -4,13 +4,14 @@ import { getMongoCollection } from '@/library/mongodb'
 import { Product } from '@/models/interfaces/products.interfaces'
 import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
+import { uuid } from 'uuidv4'
 
-const PRODUCT_INDEX = 'products_index'
+const INDEX_NAME = 'products_index'
 const COLLECTION_NAME = 'products'
 
 export async function GET(req: NextRequest) {
     try {
-        const { search, category, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
+        const { search, publish, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
 
         const currPage = parseInt(page || '1', 10)
         const sizeParam = parseInt(limit || '10', 10)
@@ -27,16 +28,19 @@ export async function GET(req: NextRequest) {
                 multi_match: {
                     query: search,
                     fields: [
-                        'name.autocomplete', 
+                        'name.autocomplete',
+                        'address.autocomplete',
+                        'city.autocomplete',
+                        'province.autocomplete', 
                     ],
                     type: "best_fields",
                 }
             })
         }
 
-        if (category){
+        if (publish){
             esQuery.bool.filter.push({
-                term: { category: category }
+                term: { 'publish': publish }
             })
         }
 
@@ -45,63 +49,75 @@ export async function GET(req: NextRequest) {
         }
 
         const esResult = await elasticsearch.search({
-            index: PRODUCT_INDEX,
-            body: { query: esQuery },
+            index: INDEX_NAME,
+            query: esQuery,
             size: sizeParam,
             from: from
         })
 
-        const esIds = esResult.hits.hits.map((hit: any) => hit._id)
-
-        const esObjectIds = esIds.map((idString: string) => new ObjectId(idString))
-
-        const productCollection = await getMongoCollection<Product>(COLLECTION_NAME)
-
-        const products = await productCollection.find({ _id: {$in: esObjectIds} }).toArray() // Fetch all products
-        const data = {
+        const response = {
             page: page,
             per_page: limit,
-            total: esResult.hits.total.value,
-            data: products
+            total: 0,
+            data: []
         }
 
-        return NextResponse.json({ success: true, results: data }, { status: 200 })
+        if(!esResult.error){
+            const esIds = esResult.hits.hits.map((hit: any) => hit._id)
+            const esObjectIds = esIds.map((idString: string) => idString)
+            const docCollection = await getMongoCollection<Product>(COLLECTION_NAME)
+    
+            const collectionData = await docCollection.find({ uuid_id: {$in: esObjectIds} }).toArray()
+            response.total = esResult.hits.total.value
+            response.data = collectionData
+        }
+        
+        return NextResponse.json({ success: true, results: response }, { status: 200 })
     } catch (error: any) {
-        console.error('Error in GET /api/products:', error)
-        return NextResponse.json({ success: false, message: 'Failed to fetch products', error: error.message }, { status: 500 })
+        console.error(`Error in GET /api/${COLLECTION_NAME}:`, error)
+        return NextResponse.json({ success: false, message: `Failed to fetch ${COLLECTION_NAME}`, error: error.message }, { status: 500 })
     }
 }
 
 export async function POST(req: NextRequest) {
     try {
-        const newProduct: Product = await req.json()
+        const newCollection: Product = await req.json()
         
-        if (!newProduct.name) { 
+        if (!newCollection.name) { 
             return NextResponse.json({ success: false, message: 'Product name are required' }, { status: 400 })
         }
 
-        const productCollection = await getMongoCollection<Product>(COLLECTION_NAME)
+        const docCollection = await getMongoCollection<Product>(COLLECTION_NAME)
+        newCollection.uuid_id = uuid()
+        const result = await docCollection.insertOne(newCollection)
 
-        const result = await productCollection.insertOne(newProduct)
-        const insertProduct = { 
-            id: result.insertedId.toHexString(),
-            name: newProduct.name,
-            description: newProduct.description,
-            category: newProduct.category,
-            price: newProduct.price
+        const insertDoc = { 
+            // id: result.insertedId.toHexString(),
+            id: newCollection.uuid_id,
+            uuid_id: newCollection.uuid_id,
+            name: newCollection.name,
+            address: newCollection.address,
+            city: newCollection.city,
+            province: newCollection.province,
+            postalCode: newCollection.postalCode,
+            location:{
+                lat: newCollection.location.lat,
+                lon: newCollection.location.lon,
+            },
+            publish: newCollection.publish,
         }
 
         // integrate with elasticsearch
         await elasticsearch.indexDocument({
-            index: PRODUCT_INDEX,
-            id: insertProduct.id,
-            document: insertProduct,
+            index: INDEX_NAME,
+            id: insertDoc.id,
+            document: insertDoc,
         })
 
         return NextResponse.json({ success: true, data: result.insertedId, message: 'Product created successfully' }, { status: 201 })
     } catch (error: any) {
-        console.error('Error in POST /api/products:', error)
-        return NextResponse.json({ success: false, message: 'Failed to create product', error: error.message }, { status: 500 })
+        console.error(`Error in POST /api/${COLLECTION_NAME}:`, error)
+        return NextResponse.json({ success: false, message: `Failed to create ${COLLECTION_NAME}`, error: error.message }, { status: 500 })
     }
 }
 
@@ -111,24 +127,27 @@ export async function PUT(req: NextRequest){
     const id = body._id as ObjectId
 
     if(!ObjectId.isValid(id)){
-        return NextResponse.json( {success: false, message: `Invalid product ID format`})
+        return NextResponse.json( {success: false, message: `Invalid ${COLLECTION_NAME} ID format`})
     }
 
     delete body._id
     
-    const productCollection = await getMongoCollection<Product>(COLLECTION_NAME)
-    const result = await productCollection.findOneAndUpdate({_id: new ObjectId(id)}, { $set: body }, { returnDocument: 'after'})
+    const docCollection = await getMongoCollection<Product>(COLLECTION_NAME)
+    const result = await docCollection.findOneAndUpdate({_id: new ObjectId(id)}, { $set: body }, { returnDocument: 'after'})
 
     const esDocument = { 
         name: result.name,
-        description: result.description,
-        category: result.category,
-        price: result.price
+        address: result.address,
+        city: result.city,
+        province: result.province,
+        postalCode: result.postalCode,
+        location: {lat: result.location.lat, lon: result.location.lon},
+        publish: result.publish,
     }
 
 
     await elasticsearch.upsertDocument({
-        index: PRODUCT_INDEX,
+        index: INDEX_NAME,
         id: result._id.toHexString(),
         document: esDocument,
     })

@@ -1,5 +1,5 @@
 'use client'
-import { APIResponse } from "@/models/interfaces/global.interfaces"
+import { PUSHAPI } from "@/helpers/apiRequest"
 import { initUser, NewUser, UserRoles } from "@/models/interfaces/users.interfaces"
 import Link from "next/link"
 import { useState } from "react"
@@ -20,15 +20,7 @@ export default function AddUserPage() {
         setIsSubmitting(true)
         setError(null)
         try {
-            const response = await fetch('/api/users', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newUser),
-            })
-            const data: APIResponse = await response.json()
-
+            const { response, data } = await PUSHAPI('POST', '/api/users', JSON.stringify(newUser))
             if (response.ok && data.success) {
                 setNewUser({ ...newUser, ...initUser }) // Reset form
                 setResponseMessage(data.message)

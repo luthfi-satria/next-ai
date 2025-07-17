@@ -1,6 +1,6 @@
 'use client'
 import NoDataFound from "@/components/DataNotFound"
-import { APIResponse } from "@/models/interfaces/global.interfaces"
+import { GETAPICALL, PUSHAPI } from "@/helpers/apiRequest"
 import { initUser, NewUser, UserRoles } from "@/models/interfaces/users.interfaces"
 import { ParamValue } from "next/dist/server/request/params"
 import Link from "next/link"
@@ -26,18 +26,11 @@ export default function EditUserPage() {
     const handleGetUser = async (id: ParamValue) => {
         try {
             setIsLoading(true)
-            const response = await fetch(`/api/users/${id}`, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json'
-                }
-            })
-
-            const data: APIResponse = await response.json()
-            if (response.ok && data.success) {
-                setNewUser({ ...newUser, ...data.data })
+            const { response, ApiResponse } = await GETAPICALL(`/api/users/${id}`)
+            if (response.ok && ApiResponse.success) {
+                setNewUser({ ...newUser, ...ApiResponse.data })
             } else {
-                setError(data.message || 'Failed to fetch User data')
+                setError(ApiResponse.message || 'Failed to fetch User data')
             }
         } catch (error: any) {
             setError(error.message)
@@ -57,14 +50,7 @@ export default function EditUserPage() {
         setIsSubmitting(true)
         setError(null)
         try {
-            const response = await fetch(`/api/users/`, {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(newUser),
-            })
-            const data: APIResponse = await response.json()
+            const { response, data } = await PUSHAPI('PUT', '/api/users/', JSON.stringify(newUser))
             if (response.ok && data.success) {
                 setNewUser({ ...newUser, ...data.data }) // Reset form
                 setResponseMessage(data.message)
