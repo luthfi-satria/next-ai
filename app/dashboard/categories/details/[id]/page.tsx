@@ -1,14 +1,14 @@
 'use client'
 import NoDataFound from "@/components/DataNotFound"
+import { CategoryType, initCategory } from "@/models/interfaces/category.interfaces"
 import { APIResponse, PublishStatus } from "@/models/interfaces/global.interfaces"
-import { StoreType, initStore } from "@/models/interfaces/stores.interfaces"
 import { ParamValue } from "next/dist/server/request/params"
 import Link from "next/link"
 import { useParams, useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
 
-export default function EditStore() {
-    const [Store, setStore] = useState<StoreType>(initStore)
+export default function EditCategory() {
+    const [Category, setCategory] = useState<CategoryType>(initCategory)
     const [isLoading, setIsLoading] = useState(false)
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
@@ -19,14 +19,14 @@ export default function EditStore() {
 
     useEffect(() => {
         if (id) {
-            handleGetStore(id)
+            handleGetCategory(id)
         }
     }, [id])
 
-    const handleGetStore = async (id: ParamValue) => {
+    const handleGetCategory = async (id: ParamValue) => {
         try {
             setIsLoading(true)
-            const response = await fetch(`/api/stores/${id}`, {
+            const response = await fetch(`/api/categories/${id}`, {
                 method: 'GET',
                 headers: {
                     'Content-Type': 'application/json'
@@ -35,9 +35,9 @@ export default function EditStore() {
 
             const data: APIResponse = await response.json()
             if (response.ok && data.success) {
-                setStore({ ...Store, ...data.data })
+                setCategory({ ...Category, ...data.data })
             } else {
-                setError(data.message || 'Failed to fetch stores data')
+                setError(data.message || 'Failed to fetch Categories data')
             }
         } catch (error: any) {
             setError(error.message)
@@ -49,27 +49,27 @@ export default function EditStore() {
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
         const { name, value } = e.target
-        setStore((prev) => ({ ...prev, [name]: value }))
+        setCategory((prev) => ({ ...prev, [name]: value }))
     }
 
-    const handleUpdateStore = async (e: React.FormEvent) => {
+    const handleUpdateCategory = async (e: React.FormEvent) => {
         e.preventDefault()
         setIsSubmitting(true)
         setError(null)
         try {
-            const response = await fetch(`/api/stores/`, {
+            const response = await fetch(`/api/categories/`, {
                 method: 'PUT',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(Store),
+                body: JSON.stringify(Category),
             })
             const data: APIResponse = await response.json()
             if (response.ok && data.success) {
-                setStore({ ...Store, ...data.data }) // Reset form
+                setCategory({ ...Category, ...data.data }) // Reset form
                 setResponseMessage(data.message)
             } else {
-                setError(data.message || 'Failed to add stores')
+                setError(data.message || 'Failed to add category')
             }
         } catch (err: any) {
             setError(err.message)
@@ -101,21 +101,17 @@ export default function EditStore() {
         return (<></>)
     }
 
-    const fetchLocation = () => {
-        return Store.location.latitude ? `${Store.location.latitude} - ${Store.location.longitude}` : ''
-    }
-
     return (
         <>
             {/* Form Tambah User */}
-            {Store && !isLoading && (
-                <div className="w-1/2 m-2 bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
+            {Category && !isLoading && (
+                <div className="w-full h-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
                     {handleResponse()}
-                    <div className="flex flex-row gap-2 justify-stretch mb-4">
+                    <div className="flex flex-row gap-2 justify-stretch mb-4 text-gray-800">
                         <Link className="w-[100px] p-4 border rounded-md text-center align-middle" href="/dashboard/categories">Back</Link>
-                        <h2 className="h-full text-xl sm:text-2xl font-bold text-gray-800 p-2 flex-grow">Edit Store</h2>
+                        <h2 className="h-full text-xl sm:text-2xl font-bold p-2 flex-grow">Edit Category</h2>
                     </div>
-                    <form onSubmit={handleUpdateStore} className="space-y-4">
+                    <form onSubmit={handleUpdateCategory} className="space-y-4 w-1/2">
                         <div>
                             <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                                 Name
@@ -124,71 +120,40 @@ export default function EditStore() {
                                 type="text"
                                 id="name"
                                 name="name"
-                                placeholder="e.g., My Store name"
-                                value={Store?.name || ''}
+                                placeholder="e.g., Otomotive"
+                                value={Category?.name || ''}
                                 onChange={handleInputChange}
                                 required
                                 className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
                             />
                         </div>
                         <div>
-                            <label htmlFor="city" className="block text-sm font-medium text-gray-700 mb-1">
-                                City
+                            <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">
+                                description
                             </label>
-                            <input
-                                type="text"
-                                id="city"
-                                name="city"
-                                placeholder="e.g., My Store city"
-                                value={Store?.city || ''}
+                            <textarea
+                                id="description"
+                                name="description"
+                                defaultValue={Category?.description || ''}
                                 onChange={handleInputChange}
                                 required
                                 className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-                            />
+                            ></textarea>
                         </div>
                         <div>
-                            <label htmlFor="province" className="block text-sm font-medium text-gray-700 mb-1">
-                                City
-                            </label>
-                            <input
-                                type="text"
-                                id="province"
-                                name="province"
-                                placeholder="e.g., My Store province"
-                                value={Store?.province || ''}
-                                onChange={handleInputChange}
-                                required
-                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="location" className="block text-sm font-medium text-gray-700 mb-1">
-                                Location
-                            </label>
-                            <input
-                                id="location"
-                                name="location"
-                                placeholder="e.g., Location"
-                                value={fetchLocation()}
-                                onChange={handleInputChange}
-                                required
-                                className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="publish" className="block text-sm font-medium text-gray-700 mb-1">
-                                publish
+                            <label htmlFor="roles" className="block text-sm font-medium text-gray-700 mb-1">
+                                Publish
                             </label>
                             <select
                                 id="publish"
                                 name="publish"
-                                value={Store?.publish || PublishStatus.PUBLISHED}
+                                defaultValue={Category?.publish || PublishStatus.PUBLISHED}
                                 onChange={handleInputChange}
                                 required
                                 className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm transition duration-150 ease-in-out"
                             >
                                 {Object.keys(PublishStatus).map((item, key) => (
-                                    <option key={`roles-${item}`}>{item}</option>
+                                    <option key={`publish-${item}`}>{item}</option>
                                 ))}
                             </select>
                         </div>
@@ -197,7 +162,7 @@ export default function EditStore() {
                             disabled={isSubmitting}
                             className="w-full py-2.5 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                            {isSubmitting ? 'Update Store...' : 'Update Store'}
+                            {isSubmitting ? 'Update Category...' : 'Update Category'}
                         </button>
                     </form>
                 </div>
@@ -210,7 +175,7 @@ export default function EditStore() {
                 </div>
             )}
 
-            {!Store && (
+            {!Category && (
                 <NoDataFound handleGoBack={router.back} />
             )}
         </>

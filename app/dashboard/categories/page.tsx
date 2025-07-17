@@ -134,7 +134,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 p-4 sm:p-6 lg:p-8 flex flex-col items-center">
+    <div className="min-h-screen bg-gray-50 flex flex-col items-center">
       <div className="w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
         <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-8">Category Management Dashboard</h1>
         <div className='flex flex-col mb-6'>
@@ -178,65 +178,66 @@ export default function HomePage() {
             <p>No category found. Click "Add New Category" to get started!</p>
           </div>
         ) : (
-          <div className="overflow-x-auto shadow-md rounded-lg border border-gray-200">
+          <div className='shadow-md rounded-t-md border border-gray-200'>
             <TablePagination
               currentPage={currentPage}
               totalItems={TotalCategory}
               itemsPerPage={limit}
               onPageChange={handlePageChange}
             />
-
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-100">
-                <tr>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Name
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Description
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
-                    Actions
-                  </th>
-                  {/* Tambahkan kolom lain jika diperlukan, misal: <th ...>Actions</th> */}
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {Categories && Categories.map((cat, key) => (
-                  <tr key={`cat_${key}`} className="hover:bg-gray-50 transition duration-150 ease-in-out">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-semibold text-lg">
-                          {cat.name.charAt(0).toUpperCase()}
-                        </div>
-                        <div className="ml-4">
-                          <div className="text-sm font-medium text-gray-900">{cat.name}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{cat.description}</div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="text-sm text-gray-700">{cat.status}</div>
-                    </td>
-
-                    <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
-                      <Link
-                        className="text-indigo-600 hover:text-indigo-900 mr-4"
-                        href={`/dashboard/categories/details/${cat._id}`}
-                        replace={true}
-                      >Edit</Link>
-                      <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(cat._id)}>Delete</button>
-                    </td>
-
+            <div className="overflow-x-auto shadow-md">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-100">
+                  <tr>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Description
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-600 uppercase tracking-wider">
+                      Actions
+                    </th>
+                    {/* Tambahkan kolom lain jika diperlukan, misal: <th ...>Actions</th> */}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Categories && Categories.map((cat, key) => (
+                    <tr key={`cat_${key}`} className="hover:bg-gray-50 transition duration-150 ease-in-out">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-semibold text-lg">
+                            {cat.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="ml-4">
+                            <div className="text-sm font-medium text-gray-900">{cat.name}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{cat.description}</div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className="text-sm text-gray-700">{cat.status}</div>
+                      </td>
+
+                      <td className="px-6 py-4 whitespace-nowrap text-left text-sm font-medium">
+                        <Link
+                          className="text-indigo-600 hover:text-indigo-900 mr-4"
+                          href={`/dashboard/categories/details/${cat._id}`}
+                          replace={true}
+                        >Edit</Link>
+                        <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(cat._id)}>Delete</button>
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
             <TablePagination
               currentPage={currentPage}
               totalItems={TotalCategory}

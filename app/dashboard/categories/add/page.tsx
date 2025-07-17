@@ -68,13 +68,13 @@ export default function AddCategoryPage() {
     return (
         <>
             {/* Form Tambah Category */}
-            <div className="w-1/2 bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
-                <div className="flex flex-row gap-2 justify-stretch mb-4">
+            <div className="w-full h-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
+                <div className="flex flex-row gap-2 justify-stretch mb-4 text-gray-800">
                     <Link className="w-[100px] p-4 border rounded-md text-center align-middle" href="/dashboard/categories">Back</Link>
-                    <h2 className="h-full text-xl sm:text-2xl font-bold text-gray-800 p-2 flex-grow">Add Category</h2>
+                    <h2 className="h-full text-xl sm:text-2xl font-bold p-2 flex-grow">Add Category</h2>
                 </div>
                 {isSubmitting && handleResponse()}
-                <form onSubmit={handleAdd} className="space-y-4">
+                <form onSubmit={handleAdd} className="space-y-4 w-1/2">
                     <div>
                         <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
                             Name
