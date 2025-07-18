@@ -46,6 +46,32 @@ PUT /categories_index
           }
         }
       },
+      "slug": {
+        "type": "keyword"
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "level": {
+        "type": "integer"
+      },
+      "parentId": {
+        "type": "keyword"
+      },
+      "ancestors": {
+        "type": "keyword"
+      },
+      "path": {
+        "type": "text",
+        "analyzer": "standard",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
       "publish": {
         "type": "text",
         "fields": {
@@ -54,6 +80,24 @@ PUT /categories_index
             "ignore_above": 256
           }
         }
+      },
+      "imageUrl": {
+        "type": "keyword",
+        "index": false
+      },
+      "meta_title": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "meta_description": {
+        "type": "text",
+        "analyzer": "standard"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "updated_at": {
+        "type": "date"
       }
     }
   }

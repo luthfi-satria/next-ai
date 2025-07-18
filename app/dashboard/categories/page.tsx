@@ -27,6 +27,14 @@ export default function HomePage() {
 
   const categoryConfig: FilterConfig[] = [
     { id: 'search', label: 'Find Name', type: 'text', placeholder: 'Type category name...' },
+    {
+      id: 'level', label: 'Find By Level', type: 'select', options: [
+        { label: 'Main Level', value: "0" },
+        { label: 'Second Level', value: "1" },
+        { label: 'Third Level', value: "2" },
+      ]
+    },
+    { id: 'date', label: 'Search by Date Range', type: 'text', placeholder: 'Type date' },
     { id: 'publish', label: 'Publish Status', type: 'select', options: publishStatus },
   ]
 
@@ -162,8 +170,12 @@ export default function HomePage() {
 
   const TableColumn = [
     { name: 'Name', columnKey: 'name', translater: translateName },
+    { name: 'Level', columnKey: 'level' },
+    { name: 'Parent', columnKey: 'parentId' },
     { name: 'Description', columnKey: 'description' },
-    { name: 'Status', columnKey: 'status' },
+    { name: 'Status', columnKey: 'publish' },
+    { name: 'Created', columnKey: 'created_at' },
+    { name: 'Updated', columnKey: 'updated_at' },
     { name: 'Action', columnKey: '_id', translater: translateAction },
   ]
 

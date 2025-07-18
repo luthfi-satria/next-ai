@@ -98,7 +98,13 @@ PUT /stores_index
         "type": "geo_point"
       },
       "uuid_id": {
-        "type": "keyword",
+        "type": "keyword"
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "updated_at": {
+        "type": "date"
       }
     }
   }

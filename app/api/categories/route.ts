@@ -1,4 +1,6 @@
 // pages/api/categories/route.ts
+import { dateNowIsoFormat } from '@/helpers/dateHelpers'
+import { customSlugify } from '@/helpers/slugify'
 import elasticsearch from '@/library/elasticsearch'
 import { getMongoCollection } from '@/library/mongodb'
 import { Category } from '@/models/interfaces/category.interfaces'
@@ -10,7 +12,7 @@ const COLLECTION_NAME = 'categories'
 
 export async function GET(req: NextRequest) {
     try {
-        const { search, publish, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
+        const { search, publish, parent, level, date, page, limit } = Object.fromEntries(req.nextUrl.searchParams.entries())
 
         const currPage = parseInt(page || '1', 10)
         const sizeParam = parseInt(limit || '10', 10)
@@ -37,6 +39,18 @@ export async function GET(req: NextRequest) {
         if (publish){
             esQuery.bool.filter.push({
                 term: { 'publish.keyword': publish }
+            })
+        }
+
+        if (parent) {
+            esQuery.bool.filter.push({
+                term: { 'parentId.keyword': parent }
+            })
+        }
+
+        if (level) {
+            esQuery.bool.filter.push({
+                term: { 'level': level }
             })
         }
 
@@ -80,19 +94,46 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
     try {
         const newCollection: Category = await req.json()
-        
         if (!newCollection.name) { 
             return NextResponse.json({ success: false, message: 'Category name are required' }, { status: 400 })
         }
+        const dateNow = dateNowIsoFormat()
 
+        newCollection.slug = await customSlugify(newCollection.name)
+        newCollection.level = 0
+        newCollection.ancestors = []
+        newCollection.createdAt = dateNow
+        newCollection.updatedAt = dateNow
+        const collectionPath: string[] = [newCollection.name]
         const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
 
+        if (newCollection.parentId){
+            const categoryParent = await docCollection.findOne({ _id: new ObjectId(newCollection.parentId) })
+            if(categoryParent){
+                newCollection.level = categoryParent.level + 1
+                newCollection.ancestors = [...categoryParent.ancestors, categoryParent._id]
+                collectionPath.unshift(categoryParent.path)
+                newCollection.path = collectionPath.join('>')
+            }
+        }
+
         const result = await docCollection.insertOne(newCollection)
+
         const insertDoc = { 
             id: result.insertedId.toHexString(),
+            slug: newCollection.slug,
             name: newCollection.name,
             description: newCollection.description,
+            level: newCollection.level,
+            parentId: newCollection.parentId,
+            ancestors: newCollection.ancestors,
+            imageUrl: newCollection.imageUrl,
+            meta_title: newCollection.meta_title,
+            meta_description: newCollection.meta_description,
+            path: newCollection.path,
             publish: newCollection.publish,
+            created_at: dateNow,
+            updated_at: dateNow,
         }
 
         // integrate with elasticsearch
@@ -111,6 +152,24 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest){
     const body = await req.json()
+    const dateNow = dateNowIsoFormat()
+
+    body.slug = await customSlugify(body.name)
+    body.level = 0
+    body.ancestors = []
+    body.updatedAt = dateNow
+    const collectionPath: string[] = [body.name]
+    const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
+
+    if (body.parentId){
+        const categoryParent = await docCollection.findOne({ _id: body.parentId })
+        if(categoryParent){
+            body.level = categoryParent.level + 1
+            body.ancestors = [...categoryParent.ancestors, categoryParent._id]
+            collectionPath.unshift(categoryParent.path)
+            body.path = collectionPath.join('>')
+        }
+    }
 
     const id = body._id as ObjectId
 
@@ -120,16 +179,23 @@ export async function PUT(req: NextRequest){
 
     delete body._id
     
-    const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
     const result = await docCollection.findOneAndUpdate({_id: new ObjectId(id)}, { $set: body }, { returnDocument: 'after'})
 
     const esDocument = { 
+        slug: result.slug,
         name: result.name,
         description: result.description,
+        level: result.level,
+        parentId: result.parentId,
+        ancestors: result.ancestors,
+        imageUrl: result.imageUrl,
+        meta_title: result.meta_title,
+        meta_description: result.meta_description,
+        path: result.path,
         publish: result.publish,
+        updated_at: dateNow,
     }
-
-
+    
     await elasticsearch.upsertDocument({
         index: CATEGORY_INDEX,
         id: result._id.toHexString(),

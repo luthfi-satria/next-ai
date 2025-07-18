@@ -2,7 +2,7 @@ import json
 import os
 import random
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from faker import Faker
 
@@ -29,6 +29,8 @@ def generate_store_data_for_files():
 
     # Ini adalah UUID yang akan menjadi pengenal umum di kedua database
     common_uuid = str(uuid.uuid4())
+    datenow = datetime.now(timezone.utc)
+    localDateNow = datenow.isoformat() + "Z"
 
     base_data = {
         "name": fake.company(),
@@ -36,6 +38,8 @@ def generate_store_data_for_files():
         "province": random.choice(provinces),
         "postalCode": fake.postcode(),
         "publish": random.choice(publish_statuses),
+        "created_at": localDateNow,
+        "updated_at": localDateNow,
     }
 
     # Format lokasi untuk Elasticsearch (geo_point): [longitude, latitude]
@@ -71,9 +75,8 @@ def generate_and_save_data_to_files(num_stores=10):
     """
     Menghasilkan dummy data dan menyimpannya ke file terpisah.
     """
-    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    es_filename = f"stores_data_elasticsearch_{timestamp}.json"
-    mongo_filename = f"stores_data_mongo_{timestamp}.json"
+    es_filename = f"stores_data_elasticsearch.json"
+    mongo_filename = f"stores_data_mongo.json"
 
     print(f"Menghasilkan {num_stores} toko dummy dan menyimpannya ke file...")
 
