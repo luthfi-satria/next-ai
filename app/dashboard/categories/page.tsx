@@ -34,7 +34,7 @@ export default function HomePage() {
         { label: 'Third Level', value: "2" },
       ]
     },
-    { id: 'date', label: 'Search by Date Range', type: 'text', placeholder: 'Type date' },
+    { id: 'date', label: 'Search by Date Range', type: 'date' },
     { id: 'publish', label: 'Publish Status', type: 'select', options: publishStatus },
   ]
 
