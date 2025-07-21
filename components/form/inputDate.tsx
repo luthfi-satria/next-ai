@@ -5,7 +5,7 @@ import { LabelInput } from './inputLabel'
 interface DateInputProps {
     label: string
     value: string // Format YYYY-MM-DD
-    onChange: (value: string) => void
+    onChange: (value: React.ChangeEvent<Element>) => void
     name?: string
     className?: string
     id?: string
@@ -21,7 +21,7 @@ const DateInput: React.FC<DateInputProps> = ({ label, value, onChange, name, id,
                 name={name || dateId}
                 id={dateId}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => onChange(e)}
                 className={className || FORM_BASE_CLASSNAME}
             />
         </div>

@@ -11,7 +11,7 @@ interface SelectInputProps {
     label: string
     options: SelectOption[]
     selectedValue: string
-    onChange: (value: string) => void
+    onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
     name?: string
     className?: string
     id?: string
@@ -27,7 +27,7 @@ const SelectInput: React.FC<SelectInputProps> = ({ label, options, selectedValue
                     id={selectId}
                     name={name || selectId}
                     value={selectedValue}
-                    onChange={(e) => onChange(e.target.value)}
+                    onChange={(e) => onChange(e)}
                     className={className || FORM_SELECT_CLASSNAME}
                 >
                     <option value="">-- Select {label.toLowerCase()} --</option>

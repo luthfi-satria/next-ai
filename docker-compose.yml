@@ -41,6 +41,7 @@ services:
       - ELASTICSEARCH_USERNAME=kibana_internal
       - ELASTICSEARCH_PASSWORD="brcu=BFP0YpCRRz1buPS"
       - KIBANA_SYSTEM_PASSWORD=elastic
+      - XPACK_REPORTING_ENCRYPTIONKEY=8b69f301a4bc3777ac5e9a97fc530e0db35f29944235da8b0565f39b36161888
     depends_on:
       - elasticsearch
 

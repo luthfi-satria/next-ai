@@ -1,8 +1,10 @@
 import { SelectOption } from '@/models/interfaces/global.interfaces'
 import React, { useCallback, useEffect, useState } from 'react'
+import CheckboxInput from '../form/inputCheckbox'
 import DateInput from '../form/inputDate'
 import SelectInput from '../form/inputSelect'
 import TextInput from '../form/inputText'
+import TextAreaInput from '../form/inputTextarea'
 
 export type FilterType = 'text' | 'select' | 'date' | 'radio' | 'checkbox' | 'textarea' | 'daterange'
 
@@ -15,7 +17,7 @@ export interface FilterConfig {
 }
 
 export interface FilterValues {
-  [key: string]: string
+  [key: string]: string | boolean
 }
 
 // --- Komponen TableFilters ---
@@ -26,11 +28,6 @@ interface TableFiltersProps {
   debounceTime?: number
   initialFilterValues: FilterValues
 }
-
-const baseInputClasses = "block w-full p-2.5 text-sm rounded-lg border focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease focus:outline-none focus:shadow-md appearance-none cursor-pointer " +
-  "bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 " +
-  "text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 " +
-  "hover:border-gray-400";
 
 const TableFilters: React.FC<TableFiltersProps> = ({
   filtersConfig,
@@ -56,49 +53,87 @@ const TableFilters: React.FC<TableFiltersProps> = ({
     }
   }, [filterValues, onFilterChange, debounceTime]);
 
-  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-    const { name, value } = e.target
+  const handleInputChange = useCallback((e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value, type, checked } = e.target as HTMLInputElement
+    const inputValue = type === 'checkbox' ? checked : value
     setFilterValues(prevValues => ({
       ...prevValues,
-      [name]: value,
+      [name]: inputValue,
     }))
   }, [])
 
+  const generateField = (obj: any, key: string) => {
+    if (obj.type == 'text') {
+      return (
+        <TextInput
+          key={key}
+          label={obj.label || obj.id}
+          name={obj.id}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
+          value={filterValues[obj.id] as string || ''}
+          placeholder={obj.placeholder}
+        />
+      )
+    }
+
+    if (obj.type == 'select') {
+      return (
+        <SelectInput
+          key={key}
+          label={obj.label || obj.id}
+          name={obj.id}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) => handleInputChange(e)}
+          options={obj.options}
+          selectedValue={filterValues[obj.id] as string || ''}
+        />
+      )
+    }
+
+    if (obj.type == 'textarea') {
+      return (
+        <TextAreaInput
+          key={key}
+          label={obj.label || obj.id}
+          name={obj.id}
+          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => handleInputChange(e)}
+          value={filterValues[obj.id] as string || ''}
+        />
+      )
+    }
+
+    if (obj.type == 'date') {
+      return (
+        <DateInput
+          key={key}
+          label={obj.label || obj.id}
+          name={obj.id}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
+          value={filterValues[obj.id] as string || ''}
+        />
+      )
+    }
+
+    if (obj.type == 'checkbox') {
+      return (
+        <CheckboxInput
+          key={key}
+          label={obj.label || obj.id}
+          name={obj.id}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e)}
+          value={obj.id}
+          checked={filterValues[obj.id] as boolean || false}
+        />
+      )
+    }
+    return null
+  }
+
+
   return (
     <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg shadow-sm mb-6">
-      {filtersConfig.map(filter => (
+      {filtersConfig.map((filter) => (
         <div key={filter.id} className="flex flex-col">
-          {filter.type === 'text' && (
-            <TextInput
-              type="text"
-              label={filter.label}
-              id={filter.id}
-              name={filter.id}
-              value={filterValues[filter.id] || ''}
-              onChange={(e) => handleInputChange}
-              placeholder={filter.placeholder || `${filter.label.toLowerCase()}...`}
-              className={baseInputClasses}
-            />
-          )}
-          {filter.type === 'select' && (
-            <SelectInput
-              label={filter.label}
-              id={filter.id}
-              selectedValue={filterValues[filter.id] || ''}
-              onChange={(e) => handleInputChange}
-              options={filter.options}
-            />
-          )}
-          {filter.type === 'date' && (
-            <DateInput
-              label={filter.label}
-              id={filter.id}
-              name={filter.id}
-              value={filterValues[filter.id] || ''}
-              onChange={(e) => handleInputChange}
-              className={baseInputClasses}
-            />
-          )}
+          {generateField(filter, filter.id)}
         </div>
       ))}
     </div>

@@ -1,3 +1,5 @@
 export const FORM_BASE_CLASSNAME = `block w-full p-2.5 text-sm rounded-lg border focus:ring-blue-500 focus:border-blue-500 transition duration-300 ease focus:outline-none focus:shadow-md appearance-none cursor-pointer bg-white dark:bg-gray-700 border-gray-300 dark:border-gray-600 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-400 hover:border-gray-400`
 export const FORM_SELECT_CLASSNAME = FORM_BASE_CLASSNAME + ` pr-10`
-export const FORM_LABEL = `block text-sm font-medium text-gray-700`
+export const FORM_LABEL = `block text-sm font-medium text-gray-700 capitalize`
+export const BUTTON_DEFAULT = `w-full py-2.5 px-6 border text-black hover:bg-gray-200 font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed`
+export const BUTTON_SUBMIT = `w-full py-2.5 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed`

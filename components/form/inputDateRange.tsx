@@ -1,14 +1,18 @@
-import React from 'react';
+import { FORM_LABEL } from '@/constants/formStyleConstant'
+import React from 'react'
+import DateInput from './inputDate'
+import { LabelInput } from './inputLabel'
 
 interface DateRangeInputProps {
-    label: string;
-    startDate: string; // Format YYYY-MM-DD
-    endDate: string;   // Format YYYY-MM-DD
-    onStartDateChange: (value: string) => void;
-    onEndDateChange: (value: string) => void;
-    startName?: string;
-    endName?: string;
-    idPrefix?: string;
+    label: string
+    startDate: string // Format YYYY-MM-DD
+    endDate: string   // Format YYYY-MM-DD
+    onStartDateChange: (value: string) => void
+    onEndDateChange: (value: string) => void
+    startName?: string
+    endName?: string
+    idPrefix?: string
+    className?: string
 }
 
 const DateRangeInput: React.FC<DateRangeInputProps> = ({
@@ -20,43 +24,28 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
     startName,
     endName,
     idPrefix,
+    className,
 }) => {
-    const prefix = idPrefix || label.toLowerCase().replace(/\s/g, '-');
-    const startDateId = `${prefix}-start-date`;
-    const endDateId = `${prefix}-end-date`;
+    const prefix = idPrefix || label.toLowerCase().replace(/\s/g, '-')
+    const startDateId = `${prefix}-start-date`
+    const endDateId = `${prefix}-end-date`
 
     return (
         <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-                {label}
-            </label>
+            <LabelInput id={idPrefix} label={label} className={className || FORM_LABEL} />
             <div className="flex space-x-4">
                 <div className="flex-1">
-                    <label htmlFor={startDateId} className="sr-only">Start Date</label>
-                    <input
-                        type="date"
-                        name={startName || `${prefix}-start`}
-                        id={startDateId}
-                        value={startDate}
-                        onChange={(e) => onStartDateChange(e.target.value)}
-                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
+                    <LabelInput id={startDateId} label='Start Date' className={className || FORM_LABEL} />
+                    <DateInput label='Start Date' onChange={onStartDateChange} value={startDate} id={startDateId} name={startName || `${prefix}-start`} />
                 </div>
                 <div className="flex items-center text-gray-500">to</div>
                 <div className="flex-1">
-                    <label htmlFor={endDateId} className="sr-only">End Date</label>
-                    <input
-                        type="date"
-                        name={endName || `${prefix}-end`}
-                        id={endDateId}
-                        value={endDate}
-                        onChange={(e) => onEndDateChange(e.target.value)}
-                        className="block w-full border border-gray-300 rounded-md shadow-sm py-2 px-3 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
+                    <LabelInput id={endDateId} label='End Date' className={className || FORM_LABEL} />
+                    <DateInput label='End Date' onChange={onEndDateChange} value={endDate} id={endDateId} name={endName || `${prefix}-end`} />
                 </div>
             </div>
         </div>
-    );
-};
+    )
+}
 
-export default DateRangeInput;
+export default DateRangeInput

@@ -6,6 +6,7 @@ import TableContentComponent from '@/components/table/TableContents'
 import { FilterConfig, FilterValues } from '@/components/table/TableFilters'
 import TablePagination from '@/components/table/TablePagination'
 import { PopulateTable, PUSHAPI } from '@/helpers/apiRequest'
+import { formatDate } from '@/helpers/dateHelpers'
 import { enumToSelectOptions } from '@/helpers/objectHelpers'
 import { Category } from '@/models/interfaces/category.interfaces'
 import { PublishStatus, SelectOption } from '@/models/interfaces/global.interfaces'
@@ -34,8 +35,8 @@ export default function HomePage() {
         { label: 'Third Level', value: "2" },
       ]
     },
-    { id: 'date', label: 'Search by Date Range', type: 'date' },
-    { id: 'publish', label: 'Publish Status', type: 'select', options: publishStatus },
+    { id: 'date', label: 'Search by Date Range', type: 'daterange' },
+    { id: 'publish', label: 'Status', type: 'select', options: publishStatus },
   ]
 
   const initialFilterState = useMemo(() => {
@@ -145,6 +146,10 @@ export default function HomePage() {
     )
   }
 
+  const translateDate = (value: string, rowData: Record<string, any>) => {
+    return formatDate(value)
+  }
+
   const pageProps: ContentProps = {
     title: 'Category Management',
     addButton: {
@@ -171,11 +176,15 @@ export default function HomePage() {
   const TableColumn = [
     { name: 'Name', columnKey: 'name', translater: translateName },
     { name: 'Level', columnKey: 'level' },
-    { name: 'Parent', columnKey: 'parentId' },
+    {
+      name: 'Parent', columnKey: 'parentName', translater: (value: string, rowData: Record<string, any>) => {
+        return <Link href={`/dashboard/categories/details/${rowData.parentId}`} className='text-blue-500 hover:text-blue-700'>{value}</Link>
+      }
+    },
     { name: 'Description', columnKey: 'description' },
     { name: 'Status', columnKey: 'publish' },
-    { name: 'Created', columnKey: 'created_at' },
-    { name: 'Updated', columnKey: 'updated_at' },
+    { name: 'Created', columnKey: 'createdAt', translater: translateDate },
+    { name: 'Updated', columnKey: 'updatedAt', translater: translateDate },
     { name: 'Action', columnKey: '_id', translater: translateAction },
   ]
 

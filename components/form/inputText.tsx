@@ -5,7 +5,7 @@ import { LabelInput } from './inputLabel'
 interface TextInputProps {
     label: string
     value: string
-    onChange: (value: string) => void
+    onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
     placeholder?: string
     type?: React.HTMLInputTypeAttribute // 'text', 'password', 'email', 'number', etc.
     name?: string
@@ -23,7 +23,7 @@ const TextInput: React.FC<TextInputProps> = ({ label, value, onChange, placehold
                 name={name || inputId}
                 id={inputId}
                 value={value}
-                onChange={(e) => onChange(e.target.value)}
+                onChange={(e) => onChange(e)}
                 placeholder={placeholder}
                 className={className || FORM_BASE_CLASSNAME}
             />

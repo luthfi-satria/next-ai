@@ -3,7 +3,7 @@ import { dateNowIsoFormat } from '@/helpers/dateHelpers'
 import { customSlugify } from '@/helpers/slugify'
 import elasticsearch from '@/library/elasticsearch'
 import { getMongoCollection } from '@/library/mongodb'
-import { Category } from '@/models/interfaces/category.interfaces'
+import { AggregateCond, Category } from '@/models/interfaces/category.interfaces'
 import { ObjectId } from 'mongodb'
 import { NextRequest, NextResponse } from 'next/server'
 
@@ -79,7 +79,8 @@ export async function GET(req: NextRequest) {
     
             const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
     
-            const category = await docCollection.find({ _id: {$in: esObjectIds} }).toArray() // Fetch all category
+            // const category = await docCollection.find({ _id: {$in: esObjectIds} }).toArray() // Fetch all category
+            const category = await docCollection.aggregate<Category>(AggregateCond(esObjectIds, COLLECTION_NAME)).toArray()
             response.total = esResult.hits.total.value
             response.data = category
         }
@@ -101,6 +102,9 @@ export async function POST(req: NextRequest) {
 
         newCollection.slug = await customSlugify(newCollection.name)
         newCollection.level = 0
+        if(newCollection.parentId){
+            newCollection.parentId = new ObjectId(newCollection.parentId)
+        }
         newCollection.ancestors = []
         newCollection.createdAt = dateNow
         newCollection.updatedAt = dateNow
@@ -108,7 +112,7 @@ export async function POST(req: NextRequest) {
         const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
 
         if (newCollection.parentId){
-            const categoryParent = await docCollection.findOne({ _id: new ObjectId(newCollection.parentId) })
+            const categoryParent = await docCollection.findOne({ _id: newCollection.parentId })
             if(categoryParent){
                 newCollection.level = categoryParent.level + 1
                 newCollection.ancestors = [...categoryParent.ancestors, categoryParent._id]
@@ -130,6 +134,7 @@ export async function POST(req: NextRequest) {
             imageUrl: newCollection.imageUrl,
             meta_title: newCollection.meta_title,
             meta_description: newCollection.meta_description,
+            meta_keywords: newCollection.meta_keywords,
             path: newCollection.path,
             publish: newCollection.publish,
             created_at: dateNow,
@@ -151,18 +156,22 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest){
-    const body = await req.json()
+    const body: Category = await req.json()
     const dateNow = dateNowIsoFormat()
 
     body.slug = await customSlugify(body.name)
     body.level = 0
     body.ancestors = []
     body.updatedAt = dateNow
+    if(body.parentId){
+        body.parentId = new ObjectId(body.parentId)
+    }
     const collectionPath: string[] = [body.name]
     const docCollection = await getMongoCollection<Category>(COLLECTION_NAME)
 
     if (body.parentId){
         const categoryParent = await docCollection.findOne({ _id: body.parentId })
+
         if(categoryParent){
             body.level = categoryParent.level + 1
             body.ancestors = [...categoryParent.ancestors, categoryParent._id]
@@ -191,6 +200,7 @@ export async function PUT(req: NextRequest){
         imageUrl: result.imageUrl,
         meta_title: result.meta_title,
         meta_description: result.meta_description,
+        meta_keywords: result.meta_keywords,
         path: result.path,
         publish: result.publish,
         updated_at: dateNow,
