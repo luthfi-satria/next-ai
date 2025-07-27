@@ -9,8 +9,8 @@ export interface User extends MongoDocument {
   roles: UserRoles;
   status: string;
   password: string;
-  createdAt?: Date;
-  updatedAt?: Date;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export type NewUser = {

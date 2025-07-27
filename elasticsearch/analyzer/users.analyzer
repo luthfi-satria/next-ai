@@ -90,6 +90,12 @@ PUT /users_index
             "search_analyzer": "autocomplete_search_analyzer"
           }
         }
+      },
+      "created_at": {
+        "type": "date"
+      },
+      "updated_at": {
+        "type": "date"
       }
     }
   }

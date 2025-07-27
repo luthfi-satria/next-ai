@@ -19,8 +19,8 @@ export default function EditCategory() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [responseMessage, setResponseMessage] = useState<string | null>(null)
-    const [aiSuggestions, setAiSuggestions] = useState<SeoSuggestions>()
-    const [aiScores, setAiScores] = useState<SeoScores>()
+    const [aiSuggestions, setAiSuggestions] = useState<SeoSuggestions|null>(null)
+    const [aiScores, setAiScores] = useState<SeoScores|null>(null)
 
     const router = useRouter()
 
@@ -85,6 +85,8 @@ export default function EditCategory() {
             setTimeout(() => {
                 setIsSubmitting(false)
                 setResponseMessage('')
+                setAiSuggestions(null)
+                setAiScores(null)
             }, 1000)
         }
     }
@@ -186,11 +188,11 @@ export default function EditCategory() {
             )}
 
             {isLoading && (
-                <div className="flex flex-col items-center space-y-4">
-                    <div className="w-16 h-16 border-4 border-blue-500 border-t-transparent rounded-full animate-spin-slow"></div>
-                    <p className="text-gray-700 text-lg font-semibold">Loading...</p>
+                <div className="flex justify-center items-center h-screen bg-gray-50">
+                <p className="text-xl font-semibold text-gray-700">Loading data...</p>
                 </div>
             )}
+
 
             {!Category && (
                 <NoDataFound handleGoBack={router.back} />

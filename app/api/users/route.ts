@@ -1,5 +1,6 @@
 // pages/api/users/route.ts
 import { SALT_LENGTH } from "@/constants/commonConstant";
+import { dateNowIsoFormat } from "@/helpers/dateHelpers";
 import elasticsearch from "@/library/elasticsearch";
 import { getMongoCollection } from "@/library/mongodb";
 import { User } from "@/models/interfaces/users.interfaces";
@@ -98,23 +99,23 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const newUser: User = await req.json();
+    const newCollection: User = await req.json();
 
-    if (!newUser.name || !newUser.email) {
+    if (!newCollection.name || !newCollection.email) {
       return NextResponse.json(
         { success: false, message: "Name and email are required" },
         { status: 400 }
       );
     }
 
-    if (!newUser.roles) {
+    if (!newCollection.roles) {
       return NextResponse.json(
         { success: false, message: "User role is required" },
         { status: 400 }
       );
     }
 
-    if (!newUser.password || !newUser.repassword) {
+    if (!newCollection.password || !newCollection.repassword) {
       return NextResponse.json(
         {
           success: false,
@@ -125,19 +126,27 @@ export async function POST(req: NextRequest) {
     }
 
     const usersCollection = await getMongoCollection<User>(COLLECTION_NAME);
-    newUser.password = await bcrypt.hash(newUser.password, SALT_LENGTH);
+    newCollection.password = await bcrypt.hash(
+      newCollection.password,
+      SALT_LENGTH
+    );
+    const dateNow = dateNowIsoFormat();
+    newCollection.createdAt = dateNow;
+    newCollection.updatedAt = dateNow;
 
-    delete newUser.repassword;
+    delete newCollection.repassword;
 
-    const result = await usersCollection.insertOne(newUser);
+    const result = await usersCollection.insertOne(newCollection);
     const insertedUser: User = {
       id: result.insertedId.toHexString(),
-      name: newUser.name,
-      username: newUser.username,
-      email: newUser.email,
-      roles: newUser.roles,
-      password: newUser.password,
-      status: newUser.status,
+      name: newCollection.name,
+      username: newCollection.username,
+      email: newCollection.email,
+      roles: newCollection.roles,
+      password: newCollection.password,
+      status: newCollection.status,
+      createdAt: newCollection.createdAt,
+      updatedAt: newCollection.updatedAt,
     };
 
     // integrate with elasticsearch
@@ -183,6 +192,9 @@ export async function PUT(req: NextRequest) {
   delete body._id;
 
   const usersCollection = await getMongoCollection<User>(COLLECTION_NAME);
+  const dateNow = dateNowIsoFormat();
+  body.updatedAt = dateNow;
+
   const result = await usersCollection.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $set: body },
@@ -196,6 +208,7 @@ export async function PUT(req: NextRequest) {
     roles: result.roles,
     password: result.password,
     status: result.status,
+    updatedAt: result.updated_at,
   };
 
   await elasticsearch.upsertDocument({

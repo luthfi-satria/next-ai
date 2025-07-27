@@ -15,8 +15,8 @@ export default function AddCategoryPage() {
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [error, setError] = useState<string | null>(null)
     const [responseMessage, setResponseMessage] = useState<string | null>(null)
-    const [aiSuggestions, setAiSuggestions] = useState<SeoSuggestions>()
-    const [aiScores, setAiScores] = useState<SeoScores>()
+    const [aiSuggestions, setAiSuggestions] = useState<SeoSuggestions|null>(null)
+    const [aiScores, setAiScores] = useState<SeoScores|null>(null)
 
     const getParentCategory = async () => {
         const { response, ApiResponse } = await GETAPICALL(`/api/categories?level=0`)
@@ -58,6 +58,8 @@ export default function AddCategoryPage() {
             setTimeout(() => {
                 setIsSubmitting(false)
                 setResponseMessage('')
+                setAiSuggestions(null)
+                setAiScores(null)
             }, 5000)
         }
     }

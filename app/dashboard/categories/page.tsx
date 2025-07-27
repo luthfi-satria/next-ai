@@ -181,7 +181,6 @@ export default function HomePage() {
         return <Link href={`/dashboard/categories/details/${rowData.parentId}`} className='text-blue-500 hover:text-blue-700'>{value}</Link>
       }
     },
-    { name: 'Description', columnKey: 'description' },
     { name: 'Status', columnKey: 'publish' },
     { name: 'Created', columnKey: 'createdAt', translater: translateDate },
     { name: 'Updated', columnKey: 'updatedAt', translater: translateDate },
