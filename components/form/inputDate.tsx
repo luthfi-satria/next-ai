@@ -22,7 +22,7 @@ const DateInput: React.FC<DateInputProps> = ({ label, value, onChange, name, id,
                 id={dateId}
                 value={value}
                 onChange={(e) => onChange(e)}
-                className={className || FORM_BASE_CLASSNAME}
+                className={`${FORM_BASE_CLASSNAME}  ${className}`}
             />
         </div>
     )

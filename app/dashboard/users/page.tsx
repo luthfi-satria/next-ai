@@ -8,7 +8,8 @@ import TablePagination from '@/components/table/TablePagination'
 import { PopulateTable, PUSHAPI } from '@/helpers/apiRequest'
 import { enumToSelectOptions } from '@/helpers/objectHelpers'
 import { SelectOption } from '@/models/interfaces/global.interfaces'
-import { User, UserRoles } from '@/models/interfaces/users.interfaces'
+import { EnumUserStatus, User, UserRoles } from '@/models/interfaces/users.interfaces'
+import { KeyIcon, LockOpenIcon, PencilIcon, TrashIcon } from '@heroicons/react/outline'
 import { ObjectId } from 'mongodb'
 import Link from 'next/link'
 import { useCallback, useEffect, useMemo, useState } from 'react'
@@ -24,10 +25,12 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState<number>(1)
   const [limit, setLimit] = useState<number>(10)
   const userRoleOptions: SelectOption[] = enumToSelectOptions(UserRoles)
+  const statusOptions: SelectOption[] = enumToSelectOptions(EnumUserStatus)
 
   const userFiltersConfig: FilterConfig[] = [
-    { id: 'search', label: 'Find Name/Email', type: 'text', placeholder: 'Type nama or email...' },
+    { id: 'search', label: 'Find Name/email/username', type: 'text', placeholder: 'Type nama or email or username...' },
     { id: 'role', label: 'Role', type: 'select', options: userRoleOptions },
+    { id: 'status', label: 'Status', type: 'select', options: statusOptions },
   ]
 
   const initialFilterState = useMemo(() => {
@@ -148,15 +151,29 @@ export default function HomePage() {
 
   const translateAction = (value: ObjectId, rowData: Record<string, any>) => {
     return (
-      <>
+      <div className='flex gap-2'>
         <Link
-          className="text-indigo-600 hover:text-indigo-900 mr-4"
+          className="text-gray-600 hover:text-gray-900 text-sm mr-4"
           href={`/dashboard/users/details/${value}`}
           replace={true}
-        >Edit
+          title='Edit'
+        >
+          <PencilIcon className='h-4 w-4' />
         </Link>
-        <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(value)}>Delete</button>
-      </>
+
+        <Link
+          className="text-yellow-600 hover:text-yellow-900 text-sm mr-4"
+          href={`/dashboard/users/change-password/${value}?name=${rowData.name}`}
+          replace={true}
+          title='Change password'
+        >
+          <KeyIcon className='h-4 w-4' />
+        </Link>
+
+        <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(value)} title='Delete'>
+          <TrashIcon className='h-4 w-4' />
+        </button>
+      </div>
     )
   }
 

@@ -1,4 +1,5 @@
 import React from 'react'
+import { LabelInput } from './inputLabel'
 
 interface CheckboxProps {
     label: string
@@ -7,9 +8,10 @@ interface CheckboxProps {
     name?: string
     value?: string
     id?: string
+    className?: string
 }
 
-const CheckboxInput: React.FC<CheckboxProps> = ({ label, checked, onChange, name, id, value }) => {
+const CheckboxInput: React.FC<CheckboxProps> = ({ label, checked, onChange, name, id, value, className }) => {
     const checkboxId = id || label.toLowerCase().replace(/\s/g, '-')
     return (
         <div className="mb-4 flex items-center">
@@ -20,11 +22,9 @@ const CheckboxInput: React.FC<CheckboxProps> = ({ label, checked, onChange, name
                 checked={checked}
                 value={value}
                 onChange={(e) => onChange(e)}
-                className="focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded"
+                className={`focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded ${className}`}
             />
-            <label htmlFor={checkboxId} className="ml-3 block text-sm font-medium text-gray-700">
-                {label}
-            </label>
+            <LabelInput id={checkboxId} label={label} />
         </div>
     )
 }

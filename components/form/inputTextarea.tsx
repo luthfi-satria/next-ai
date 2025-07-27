@@ -10,9 +10,10 @@ interface TextAreaInputProps {
     rows?: number;
     name?: string;
     id?: string;
+    className?: string;
 }
 
-const TextAreaInput: React.FC<TextAreaInputProps> = ({ label, value, onChange, placeholder, rows = 3, name, id }) => {
+const TextAreaInput: React.FC<TextAreaInputProps> = ({ label, value, onChange, placeholder, rows = 3, name, id, className }) => {
     const textareaId = id || label.toLowerCase().replace(/\s/g, '-');
     return (
         <div className="mb-4">
@@ -24,7 +25,7 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({ label, value, onChange, p
                 value={value}
                 onChange={(e) => onChange(e)}
                 placeholder={placeholder}
-                className={FORM_BASE_CLASSNAME}
+                className={`${FORM_BASE_CLASSNAME}  ${className}`}
             ></textarea>
         </div>
     );

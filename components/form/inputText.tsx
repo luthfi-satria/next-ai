@@ -25,7 +25,7 @@ const TextInput: React.FC<TextInputProps> = ({ label, value, onChange, placehold
                 value={value}
                 onChange={(e) => onChange(e)}
                 placeholder={placeholder}
-                className={className || FORM_BASE_CLASSNAME}
+                className={`${FORM_BASE_CLASSNAME}  ${className}`}
             />
         </div>
     )

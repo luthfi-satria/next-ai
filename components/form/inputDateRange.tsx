@@ -1,5 +1,5 @@
 import { FORM_LABEL } from '@/constants/formStyleConstant'
-import React from 'react'
+import React, { ChangeEvent } from 'react'
 import DateInput from './inputDate'
 import { LabelInput } from './inputLabel'
 
@@ -7,8 +7,8 @@ interface DateRangeInputProps {
     label: string
     startDate: string // Format YYYY-MM-DD
     endDate: string   // Format YYYY-MM-DD
-    onStartDateChange: (value: string) => void
-    onEndDateChange: (value: string) => void
+    onStartDateChange: (value: ChangeEvent<Element>) => void
+    onEndDateChange: (value: ChangeEvent<Element>) => void
     startName?: string
     endName?: string
     idPrefix?: string
@@ -36,12 +36,12 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
             <div className="flex space-x-4">
                 <div className="flex-1">
                     <LabelInput id={startDateId} label='Start Date' className={className || FORM_LABEL} />
-                    <DateInput label='Start Date' onChange={onStartDateChange} value={startDate} id={startDateId} name={startName || `${prefix}-start`} />
+                    <DateInput label='Start Date' onChange={(e) => onStartDateChange(e)} value={startDate} id={startDateId} name={startName || `${prefix}-start`} />
                 </div>
                 <div className="flex items-center text-gray-500">to</div>
                 <div className="flex-1">
                     <LabelInput id={endDateId} label='End Date' className={className || FORM_LABEL} />
-                    <DateInput label='End Date' onChange={onEndDateChange} value={endDate} id={endDateId} name={endName || `${prefix}-end`} />
+                    <DateInput label='End Date' onChange={(e) => onEndDateChange(e)} value={endDate} id={endDateId} name={endName || `${prefix}-end`} />
                 </div>
             </div>
         </div>
