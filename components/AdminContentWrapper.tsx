@@ -3,6 +3,11 @@
 import Link from "next/link"
 import ConfirmModal from "./ConfirmModal"
 import TableFilters, { FilterConfig, FilterValues } from "./table/TableFilters"
+import {
+  BUTTON_GRADIENT_BLUE,
+  BUTTON_GRADIENT_GRAY,
+  BUTTON_GRADIENT_GREEN,
+} from "@/constants/formStyleConstant"
 
 export type ContentProps = {
   title: string
@@ -52,7 +57,7 @@ export function AdminContentWrapperComponent({
               <div className="mb-6">
                 <Link
                   href={props.addButton.href}
-                  className="py-3 px-6 bg-gradient-to-r from-blue-500 to-indigo-600 text-white font-semibold rounded-lg shadow-md hover:from-blue-600 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition duration-300 ease-in-out"
+                  className={`${BUTTON_GRADIENT_BLUE}`}
                 >
                   ✨ {props.addButton.label}
                 </Link>
@@ -70,13 +75,13 @@ export function AdminContentWrapperComponent({
                   <div className="flex w-full gap-4 justify-end">
                     <button
                       onClick={props.addFilter.onSearch}
-                      className="px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 self-end" // self-end untuk alignment
+                      className={BUTTON_GRADIENT_GREEN}
                     >
                       Find
                     </button>
                     <button
                       onClick={props.addFilter.onReset}
-                      className="px-4 py-2 bg-gray-100 border border-gray-200 text-gray-400 rounded-md hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 self-end" // self-end untuk alignment
+                      className={BUTTON_GRADIENT_GRAY}
                     >
                       Reset
                     </button>

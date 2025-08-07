@@ -31,6 +31,7 @@
     "**/*.tsx",
     "next-env.d.ts",
     "tailwind.config.js",
+    "postcss.config.js",
     ".next/types/**/*.ts",
     "eslint.config.mts",
     "jest.config.ts"
