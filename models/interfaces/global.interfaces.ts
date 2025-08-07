@@ -1,26 +1,28 @@
-export type APIResponse = {
-    success: boolean,
-    results?: any, 
-    data?: any,
-    message: string
+export type APIResponse<T> = {
+  success: boolean
+  results?: {
+    data: T
+  }
+  data?: T
+  message: string
 }
 
 export type MapLocation = {
-    type: string,
-    coordinates: number[]
+  type: string
+  coordinates: number[]
 }
 
 export interface SelectOption {
-  value: string;
-  label: string;
+  value: string
+  label: string
 }
 
 export enum PublishStatus {
-  PUBLISHED = 'PUBLISHED',
-  UNPUBLISHED = 'UNPUBLISHED'
+  PUBLISHED = "PUBLISHED",
+  UNPUBLISHED = "UNPUBLISHED",
 }
 
 export enum Currency {
   DOLLAR = "$",
-  RUPIAH = "IDR"
+  RUPIAH = "IDR",
 }

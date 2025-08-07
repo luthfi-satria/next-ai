@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react"
 
 const NoDataFound = ({
   title = "No Data Found",
@@ -20,29 +20,25 @@ const NoDataFound = ({
     </svg>
   ),
   className = "",
-  handleGoBack
-}:{
-    title?: string,
-    message?: string,
-    icon?: any,
-    className?: string,
-    handleGoBack: () => void
+  handleGoBack,
+}: {
+  title?: string
+  message?: string
+  icon?: React.ReactNode
+  className?: string
+  handleGoBack: () => void
 }) => {
   return (
     <div
       className={`flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-sm text-center ${className}`}
     >
-      <div className="mb-4">
-        {icon}
-      </div>
-      <h3 className="text-xl font-semibold text-gray-800 mb-2">
-        {title}
-      </h3>
-      <p className="text-gray-600">
-        {message}
-      </p>
-      {/* Anda bisa menambahkan tombol atau link di sini jika diperlukan */}
-      <button className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600" onClick={handleGoBack}>
+      <div className="mb-4">{icon}</div>
+      <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>
+      <p className="text-gray-600">{message}</p>
+      <button
+        className="mt-4 px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600"
+        onClick={handleGoBack}
+      >
         Back
       </button>
     </div>

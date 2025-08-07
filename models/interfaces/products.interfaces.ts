@@ -18,42 +18,42 @@ export interface Products extends MongoDocument {
   discount: Discount[]
   availability: Availability
   stockQty: number
-  minOrder: number,
-  options: ProductOption[],
-  status: PublishStatus,
-  weight: number,
-  variants: ProductVariants[],
-  averageRating: number,
+  minOrder: number
+  options: ProductOption[]
+  status: PublishStatus
+  weight: number
+  variants: ProductVariants[]
+  averageRating: number
   createdAt: Date
   updatedAt: Date
 }
 
 export type Brand = {
-  name: string,
-  logoUrl: string,
+  name: string
+  logoUrl: string
 }
 
 export type Discount = {
-  type: string,
-  value: number,
-  start: Date,
+  type: string
+  value: number
+  start: Date
   end: Date
 }
 
 export type ProductVariants = {
-  sku: string,
-  attributes: ProductVariantAttributes[],
-  price: number,
-  stockQty: number,
+  sku: string
+  attributes: ProductVariantAttributes[]
+  price: number
+  stockQty: number
   images: string[]
 }
 
 export type ProductVariantAttributes = {
-  name: string,
-  value: string,
+  name: string
+  value: string
 }
 
-export enum Availability{
+export enum Availability {
   INSTOCK = "IN STOCK",
   OUTSTOCK = "OUT OF STOCK",
   PREORDER = "PRE ORDER",
@@ -61,7 +61,7 @@ export enum Availability{
 }
 
 export type ProductOption = {
-  name: string,
+  name: string
   values: string[]
 }
 
@@ -88,16 +88,16 @@ export type ProductInfo = {
 }
 
 export const initProduct: ProductInfo = {
-  name: '',
-  slug: '',
-  description: '',
-  sku: '',
+  name: "",
+  slug: "",
+  description: "",
+  sku: "",
   brand: <Brand>{
-    name: '',
-    logoUrl: '',
+    name: "",
+    logoUrl: "",
   },
-  category: '',
-  storeUUId: '',
+  category: "",
+  storeUUId: "",
   images: [],
   tags: [],
   price: 0,

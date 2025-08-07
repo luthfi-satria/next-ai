@@ -1,16 +1,23 @@
-'use client'
+"use client"
 
-import { AdminContentWrapperComponent, ContentProps, translateName } from '@/components/AdminContentWrapper'
-import TableContentComponent from '@/components/table/TableContents'
-import { FilterConfig, FilterValues } from '@/components/table/TableFilters'
-import TablePagination from '@/components/table/TablePagination'
-import { PopulateTable, PUSHAPI } from '@/helpers/apiRequest'
-import { enumToSelectOptions } from '@/helpers/objectHelpers'
-import { PublishStatus, SelectOption } from '@/models/interfaces/global.interfaces'
-import { Stores } from '@/models/interfaces/stores.interfaces'
-import { ObjectId } from 'mongodb'
-import Link from 'next/link'
-import { useCallback, useEffect, useMemo, useState } from 'react'
+import {
+  AdminContentWrapperComponent,
+  ContentProps,
+  translateName,
+} from "@/components/AdminContentWrapper"
+import TableContentComponent from "@/components/table/TableContents"
+import { FilterConfig, FilterValues } from "@/components/table/TableFilters"
+import TablePagination from "@/components/table/TablePagination"
+import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
+import { enumToSelectOptions } from "@/helpers/objectHelpers"
+import {
+  PublishStatus,
+  SelectOption,
+} from "@/models/interfaces/global.interfaces"
+import { Stores } from "@/models/interfaces/stores.interfaces"
+import { ObjectId } from "mongodb"
+import Link from "next/link"
+import { useCallback, useEffect, useMemo, useState } from "react"
 
 export default function HomePage() {
   const [Stores, setStores] = useState<Stores[]>([])
@@ -21,23 +28,36 @@ export default function HomePage() {
   const [isSearch, setIsSearch] = useState<boolean>(true)
   const [SelectedStore, setSelectedStore] = useState<ObjectId>()
   const [currentPage, setCurrentPage] = useState<number>(1)
-  const [limit, setLimit] = useState<number>(10)
+  const limit = 10
   const publishStatus: SelectOption[] = enumToSelectOptions(PublishStatus)
 
-  const formConfig: FilterConfig[] = [
-    { id: 'search', label: 'Find Name', type: 'text', placeholder: 'Type stores name...' },
-    { id: 'publish', label: 'Publish Status', type: 'select', options: publishStatus },
-  ]
+  const formConfig: FilterConfig[] = useMemo(() => {
+    return [
+      {
+        id: "search",
+        label: "Find Name",
+        type: "text",
+        placeholder: "Type stores name...",
+      },
+      {
+        id: "publish",
+        label: "Publish Status",
+        type: "select",
+        options: publishStatus,
+      },
+    ]
+  }, [publishStatus])
 
   const initialFilterState = useMemo(() => {
     const initialState: FilterValues = {}
-    formConfig.forEach(filter => {
-      initialState[filter.id] = ''
+    formConfig.forEach((filter) => {
+      initialState[filter.id] = ""
     })
     return initialState
-  }, [])
+  }, [formConfig])
 
-  const [currentFilters, setCurrentFilters] = useState<FilterValues>(initialFilterState)
+  const [currentFilters, setCurrentFilters] =
+    useState<FilterValues>(initialFilterState)
 
   const handleFilterChange = useCallback((filters: FilterValues) => {
     setCurrentFilters(filters)
@@ -48,53 +68,70 @@ export default function HomePage() {
     setIsSearch(true)
   }, [initialFilterState])
 
-  useEffect(() => {
-    if (!Stores || isSearch) {
-      fetchStores()
-    }
-  }, [Stores, isSearch])
-
-  const fetchStores = async () => {
+  const fetchStores = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
-      const { response, ApiResponse } = await PopulateTable('/api/stores', currentFilters, currentPage, limit)
+      const { response, ApiResponse } = await PopulateTable(
+        "/api/stores",
+        currentFilters,
+        currentPage,
+        limit,
+      )
       if (response.ok && ApiResponse.success) {
         const data = ApiResponse.results.data
 
         setStores(data as Stores[])
         setTotalStores(ApiResponse.results.total)
       } else {
-        setError(ApiResponse.message || 'Failed to fetch stores')
+        setError(ApiResponse.message || "Failed to fetch stores")
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        console.log(`Error: `, err.message)
+      }
       // setError(err.message)
     } finally {
       setLoading(false)
       setIsSearch(false)
     }
-  }
+  }, [currentFilters, currentPage])
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-screen bg-gray-50">
-      <p className="text-xl font-semibold text-gray-700">Loading Stores...</p>
-    </div>
-  )
-  if (error) return (
-    <div className="flex justify-center items-center h-screen bg-gray-50">
-      <p className="text-xl font-semibold text-red-600">Error: {error}</p>
-    </div>
-  )
+  useEffect(() => {
+    if (!Stores || isSearch) {
+      fetchStores()
+    }
+  }, [Stores, isSearch, fetchStores])
+
+  if (loading)
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <p className="text-xl font-semibold text-gray-700">Loading Stores...</p>
+      </div>
+    )
+  if (error)
+    return (
+      <div className="flex justify-center items-center h-screen bg-gray-50">
+        <p className="text-xl font-semibold text-red-600">Error: {error}</p>
+      </div>
+    )
 
   const handleDelete = async () => {
     if (SelectedStore) {
       try {
-        const { response, data } = await PUSHAPI('DELETE', `/api/stores/${SelectedStore}`, '')
+        const { response, data } = await PUSHAPI(
+          "DELETE",
+          `/api/stores/${SelectedStore}`,
+          "",
+        )
         if (response.ok && data.success) {
           fetchStores()
         }
-      } catch (error: any) {
-        setError(error.message)
+      } catch (error: unknown) {
+        if (error instanceof Error) {
+          console.log(`Error: `, error.message)
+          setError(error.message)
+        }
       } finally {
         setIsModalOpen(false)
         setSelectedStore(null)
@@ -121,25 +158,34 @@ export default function HomePage() {
   const handleSearch = () => {
     setIsSearch(true)
   }
-  const translateAction = (value: ObjectId, rowData: Record<string, any>) => {
+  const translateAction = (
+    value: ObjectId,
+    _rowData: Record<string, unknown>,
+  ) => {
     return (
       <>
         <Link
           className="text-indigo-600 hover:text-indigo-900 mr-4"
           href={`/dashboard/stores/${value}`}
           replace={true}
-        >Edit
+        >
+          Edit
         </Link>
-        <button className="text-red-600 hover:text-red-900" onClick={() => handleConfirmDelete(value)}>Delete</button>
+        <button
+          className="text-red-600 hover:text-red-900"
+          onClick={() => handleConfirmDelete(value)}
+        >
+          Delete
+        </button>
       </>
     )
   }
 
   const pageProps: ContentProps = {
-    title: 'Store Management',
+    title: "Store Management",
     addButton: {
-      href: '/dashboard/stores/add',
-      label: 'Add new stores'
+      href: "/dashboard/stores/add",
+      label: "Add new stores",
     },
     addFilter: {
       config: formConfig,
@@ -149,32 +195,34 @@ export default function HomePage() {
       onReset: handleResetFilters,
     },
     modal: {
-      confirmText: 'Yes, remove!',
-      cancelText: 'No',
+      confirmText: "Yes, remove!",
+      cancelText: "No",
       isOpen: isModalOpen,
       onClose: handleCloseModal,
       onConfirm: handleDelete,
-      title: 'Remove store'
+      title: "Remove store",
     },
   }
 
   const TableColumn = [
-    { name: 'Name', columnKey: 'name', translater: translateName },
-    { name: 'City', columnKey: 'city' },
-    { name: 'Province', columnKey: 'province' },
-    { name: 'Status', columnKey: 'publish' },
-    { name: 'Action', columnKey: '_id', translater: translateAction },
+    { name: "Name", columnKey: "name", translater: translateName },
+    { name: "City", columnKey: "city" },
+    { name: "Province", columnKey: "province" },
+    { name: "Status", columnKey: "publish" },
+    { name: "Action", columnKey: "_id", translater: translateAction },
   ]
   return (
     <AdminContentWrapperComponent props={pageProps}>
       {/* Tabel Store List */}
-      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-5 mt-8">Registered Store</h2>
+      <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-5 mt-8">
+        Registered Store
+      </h2>
       {Stores && Stores.length === 0 ? (
         <div className="text-gray-600 text-center py-8 text-lg bg-gray-50 rounded-lg border border-gray-200">
-          <p>No stores found. Click "Add New Store" to get started!</p>
+          <p>{`No stores found. Click "Add New Store" to get started!`}</p>
         </div>
       ) : (
-        <div className='shadow-md rounded-t-md border border-gray-200'>
+        <div className="shadow-md rounded-t-md border border-gray-200">
           <TablePagination
             currentPage={currentPage}
             totalItems={TotalStores}

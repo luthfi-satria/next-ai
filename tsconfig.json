@@ -1,11 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES2017",
-    "lib": [
-      "dom",
-      "dom.iterable",
-      "esnext"
-    ],
+    "lib": ["dom", "dom.iterable", "esnext"],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": false,
@@ -19,14 +15,11 @@
     "jsx": "preserve",
     "baseUrl": "./",
     "paths": {
-      "@/*": [
-        "./*"
-      ],
+      "@/*": ["./*"],
       "@/library/*": ["library/*"],
       "@/constants/*": ["constants/*"]
-    }
+    },
     // ------------------------------------------
-    ,
     "plugins": [
       {
         "name": "next"
@@ -38,9 +31,9 @@
     "**/*.tsx",
     "next-env.d.ts",
     "tailwind.config.js",
-    ".next/types/**/*.ts"
-, "jest.config.ts"  ],
-  "exclude": [
-    "node_modules"
-  ]
+    ".next/types/**/*.ts",
+    "eslint.config.mts",
+    "jest.config.ts"
+  ],
+  "exclude": ["node_modules"]
 }

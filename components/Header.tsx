@@ -5,7 +5,18 @@ export default function Header() {
       <h1 className="m-0 text-2xl text-black font-bold">Dashboard Overview</h1>
       <div>
         <span className="mr-2 text-stone-800">Welcome, Admin!</span>
-        <button style={{ padding: '8px 15px', background: '#dc3545', color: 'white', border: 'none', borderRadius: '5px', cursor: 'pointer' }}>Logout</button>
+        <button
+          style={{
+            padding: "8px 15px",
+            background: "#dc3545",
+            color: "white",
+            border: "none",
+            borderRadius: "5px",
+            cursor: "pointer",
+          }}
+        >
+          Logout
+        </button>
       </div>
     </header>
   )

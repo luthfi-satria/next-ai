@@ -1,5 +1,9 @@
 // lib/elasticsearch.ts
-import { Client } from '@elastic/elasticsearch'
+import {
+  ElasticsearchResponse,
+  ErrorResponse,
+} from "@/models/interfaces/elasticsearch.interfaces"
+import { Client } from "@elastic/elasticsearch"
 
 interface SearchOptions {
   index: string
@@ -43,19 +47,17 @@ class ElasticsearchService {
 
   private constructor() {
     if (!process.env.ELASTICSEARCH_NODE) {
-      throw new Error('ELASTICSEARCH_NODE is not defined in environment variables.')
+      throw new Error(
+        "ELASTICSEARCH_NODE is not defined in environment variables.",
+      )
     }
 
     this.client = new Client({
       node: process.env.ELASTICSEARCH_NODE,
       auth: {
-        username: process.env.ELASTICSEARCH_USERNAME || '',
-        password: process.env.ELASTICSEARCH_PASSWORD || '',
+        username: process.env.ELASTICSEARCH_USERNAME || "",
+        password: process.env.ELASTICSEARCH_PASSWORD || "",
       },
-      // Hapus atau sesuaikan jika Anda menggunakan sertifikat SSL kustom
-      // tls: {
-      //   rejectUnauthorized: false
-      // }
     })
   }
 
@@ -69,17 +71,18 @@ class ElasticsearchService {
   public async ping(): Promise<boolean> {
     try {
       await this.client.ping({})
-      console.log('Connected to Elasticsearch')
+      console.log("Connected to Elasticsearch")
       return true
     } catch (error) {
-      console.error('Elasticsearch cluster is down!', error)
+      console.error("Elasticsearch cluster is down!", error)
       return false
     }
   }
 
-  public async search(options: SearchOptions): Promise<any> {
+  public async search<T>(
+    options: SearchOptions,
+  ): Promise<ElasticsearchResponse<T> | ErrorResponse> {
     const { index, query, size, from, body } = options
-
     const sizeParam = size ?? 20
     const startFrom = from ?? 0
     try {
@@ -89,17 +92,20 @@ class ElasticsearchService {
         size: sizeParam,
         from: startFrom,
       }
-      const result = await this.client.search(esBody)
+      // Panggil search dari client dengan tipe <ElasticsearchResponse<T>>
+      const result = await this.client.search<ElasticsearchResponse<T>>(esBody)
 
-      return result.body
+      // --- KOREKSI: Gunakan type assertion
+      return result.body as ElasticsearchResponse<T>
     } catch (error) {
-      console.error('Error searching Elasticsearch:', error)
-      // throw error
-      return {error: true, message: error}
+      console.error("Error searching Elasticsearch:", error)
+      return { error: true, message: error }
     }
   }
 
-  public async indexDocument(options: IndexOptions): Promise<any> {
+  public async indexDocument(
+    options: IndexOptions,
+  ): Promise<Record<string, unknown> | ErrorResponse> {
     const { index, id, document } = options
     try {
       const result = await this.client.index({
@@ -109,13 +115,14 @@ class ElasticsearchService {
       })
       return result.body
     } catch (error) {
-      console.error('Error indexing document:', error)
-      // throw error
-      return error
+      console.error("Error indexing document:", error)
+      return { error: true, message: error }
     }
   }
 
-  public async updateDocument(options: UpdateOptions): Promise<any> {
+  public async updateDocument(
+    options: UpdateOptions,
+  ): Promise<Record<string, unknown>> {
     const { index, id, document } = options
     try {
       const result = await this.client.update({
@@ -127,11 +134,14 @@ class ElasticsearchService {
       })
       return result.body
     } catch (error) {
-      console.error('Error updating document:', error)
+      console.error("Error updating document:", error)
       throw error
     }
   }
-  public async upsertDocument(options: UpsertOptions): Promise<any> {
+
+  public async upsertDocument(
+    options: UpsertOptions,
+  ): Promise<Record<string, unknown>> {
     const { index, id, document } = options
     try {
       const result = await this.client.update({
@@ -139,17 +149,19 @@ class ElasticsearchService {
         id,
         body: {
           doc: document,
-          doc_as_upsert: true 
+          doc_as_upsert: true,
         },
       })
       return result.body
     } catch (error) {
-      console.error('Error upserting document:', error)
+      console.error("Error upserting document:", error)
       throw error
     }
   }
 
-  public async deleteDocument(options: DeleteOptions): Promise<any> {
+  public async deleteDocument(
+    options: DeleteOptions,
+  ): Promise<Record<string, unknown> | ErrorResponse> {
     const { index, id } = options
     try {
       const result = await this.client.delete({
@@ -157,26 +169,35 @@ class ElasticsearchService {
         id,
       })
 
-      if (result.body.result === 'not_found') {
-        return { success: true, message: 'Document not found, but delete operation processed.' }
+      if (result.body.result === "not_found") {
+        return {
+          error: false, // Perbaiki, ini bukan error
+          message: "Document not found, but delete operation processed.",
+        }
       }
       return result.body
     } catch (error) {
-      console.error('Error deleting document:', error)
-      return error
+      console.error("Error deleting document:", error)
+      return { error: true, message: error }
     }
   }
 
-  public async findOneAndDelete(options: FindOneAndDeleteOptions): Promise<any | null> {
+  public async findOneAndDelete<T>(
+    options: FindOneAndDeleteOptions,
+  ): Promise<T | null | ErrorResponse> {
     const { index, query } = options
     try {
-      const searchResult = await this.client.search({
+      const searchResult = await this.search<T>({
         index,
-        body: { query },
+        query,
         size: 1,
       })
 
-      const hits = searchResult.body.hits.hits
+      if ("error" in searchResult) {
+        throw new Error(searchResult.message as string)
+      }
+
+      const hits = searchResult.hits.hits
 
       if (hits.length === 0) {
         return null
@@ -185,15 +206,15 @@ class ElasticsearchService {
       const docToDelete = hits[0]
       const docId = docToDelete._id
 
-      const deleteResult = await this.client.delete({
+      await this.client.delete({
         index,
         id: docId,
       })
 
       return docToDelete._source
     } catch (error) {
-      console.error('Error in findOneAndDelete:', error)
-      throw error
+      console.error("Error in findOneAndDelete:", error)
+      return { error: true, message: error }
     }
   }
 }

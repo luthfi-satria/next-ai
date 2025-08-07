@@ -1,41 +1,40 @@
-import { Document as MongoDocument, ObjectId } from "mongodb";
-import { PublishStatus } from "./global.interfaces";
+import { Document as MongoDocument, ObjectId } from "mongodb"
 
 export interface User extends MongoDocument {
-  _id?: ObjectId;
-  name: string;
-  username: string;
-  email: string;
-  roles: UserRoles;
-  status: string;
-  password: string;
-  createdAt?: string;
-  updatedAt?: string;
+  _id?: ObjectId
+  name: string
+  username: string
+  email: string
+  roles: UserRoles
+  status: string
+  password: string
+  createdAt?: string
+  updatedAt?: string
 }
 
 export type NewUser = {
-  name: string;
-  username: string;
-  email: string;
-  roles: UserRoles;
-  status: EnumUserStatus;
-  password: string;
-  repassword: string;
-};
+  name: string
+  username: string
+  email: string
+  roles: UserRoles
+  status: EnumUserStatus
+  password: string
+  repassword: string
+}
 
 export type editUser = {
-  name: string;
-  username: string;
-  email: string;
-  roles: UserRoles;
-  status: EnumUserStatus;
-};
+  name: string
+  username: string
+  email: string
+  roles: UserRoles
+  status: EnumUserStatus
+}
 
 export type changePassword = {
-  oldPassword: string;
-  newPassword: string;
-  renewPassword: string;
-};
+  oldPassword: string
+  newPassword: string
+  renewPassword: string
+}
 
 export enum UserRoles {
   ADMIN = "ADMIN",
@@ -58,7 +57,7 @@ export const initUser: NewUser = {
   status: EnumUserStatus.ACTIVE,
   password: "",
   repassword: "",
-};
+}
 
 export const initEditUser: editUser = {
   name: "",
@@ -66,10 +65,10 @@ export const initEditUser: editUser = {
   email: "",
   roles: UserRoles.CUSTOMER,
   status: EnumUserStatus.ACTIVE,
-};
+}
 
 export const initChangePassword: changePassword = {
   oldPassword: "",
   newPassword: "",
   renewPassword: "",
-};
+}

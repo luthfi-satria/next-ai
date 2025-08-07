@@ -3,12 +3,12 @@
  * https://jestjs.io/docs/configuration
  */
 
-import type {Config} from 'jest';
-import nextJest from 'next/jest.js';
+import type { Config } from "jest"
+import nextJest from "next/jest.js"
 
 const createJestConfig = nextJest({
   // Provide the path to your Next.js app to load next.config.js and .env files in your test environment
-  dir: './',
+  dir: "./",
 })
 
 const config: Config = {
@@ -94,15 +94,15 @@ const config: Config = {
     "cts",
     "tsx",
     "json",
-    "node"
+    "node",
   ],
 
   // A map from regular expressions to module names or to arrays of module names that allow to stub out resources with a single module
   moduleNameMapper: {
-    '^.+\\.(png|jpg|jpeg|gif|webp|avif|ico|bmp|svg)$/i': `<rootDir>/__mocks__/fileMock.js`,
-    '^@/library/(.*)$': '<rootDir>/library/$1',
-    '^@/constants/(.*)$': '<rootDir>/constants/$1',
-    '^@/(.*)$': '<rootDir>/$1',
+    "^.+\\.(png|jpg|jpeg|gif|webp|avif|ico|bmp|svg)$/i": `<rootDir>/__mocks__/fileMock.js`,
+    "^@/library/(.*)$": "<rootDir>/library/$1",
+    "^@/constants/(.*)$": "<rootDir>/constants/$1",
+    "^@/(.*)$": "<rootDir>/$1",
   },
 
   // An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -139,9 +139,7 @@ const config: Config = {
   // rootDir: undefined,
 
   // A list of paths to directories that Jest should use to search for files in
-  roots: [
-    "<rootDir>"
-  ],
+  roots: ["<rootDir>"],
 
   // Allows you to use a custom runner instead of Jest's default test runner
   // runner: "jest-runner",
@@ -150,7 +148,7 @@ const config: Config = {
   // setupFiles: [],
 
   // A list of paths to modules that run some code to configure or set up the testing framework before each test
-  setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
 
   // The number of seconds after which a test is considered as slow and reported as such in the results.
   // slowTestThreshold: 5,
@@ -170,7 +168,7 @@ const config: Config = {
   // The glob patterns Jest uses to detect test files
   testMatch: [
     "**/__tests__/**/*.?([mc])[jt]s?(x)",
-    "**/?(*.)+(spec|test).?([mc])[jt]s?(x)"
+    "**/?(*.)+(spec|test).?([mc])[jt]s?(x)",
   ],
 
   // An array of regexp pattern strings that are matched against all test paths, matched tests are skipped
@@ -207,6 +205,6 @@ const config: Config = {
 
   // Whether to use watchman for file crawling
   // watchman: true,
-};
+}
 
-export default createJestConfig(config);
+export default createJestConfig(config)

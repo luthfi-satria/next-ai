@@ -1,5 +1,5 @@
 // components/ConfirmModal.tsx
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef } from "react"
 
 interface ConfirmModalProps {
   isOpen: boolean
@@ -25,38 +25,41 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   // Close modal when clicking outside of it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         onClose()
       }
     }
 
     if (isOpen) {
-      document.addEventListener('mousedown', handleClickOutside)
+      document.addEventListener("mousedown", handleClickOutside)
     } else {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside)
     }
 
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside)
+      document.removeEventListener("mousedown", handleClickOutside)
     }
   }, [isOpen, onClose])
 
   // Handle keyboard events (e.g., Escape key to close)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
+      if (event.key === "Escape") {
         onClose()
       }
     }
 
     if (isOpen) {
-      document.addEventListener('keydown', handleKeyDown)
+      document.addEventListener("keydown", handleKeyDown)
     } else {
-      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener("keydown", handleKeyDown)
     }
 
     return () => {
-      document.removeEventListener('keydown', handleKeyDown)
+      document.removeEventListener("keydown", handleKeyDown)
     }
   }, [isOpen, onClose])
 
@@ -64,7 +67,10 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
 
   return (
     <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
-      <div ref={modalRef} className="bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full">
+      <div
+        ref={modalRef}
+        className="bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full"
+      >
         <h3 className="text-xl font-semibold text-gray-900 mb-4">{title}</h3>
         <p className="text-gray-700 mb-6">{message}</p>
         <div className="flex justify-end space-x-3">

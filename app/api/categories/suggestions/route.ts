@@ -1,10 +1,20 @@
 // pages/api/seo-category-suggestions.ts
-import { geminiContentGenerator } from '@/library/gemini'
-import { CategoryType, SeoScores, SeoSuggestions } from '@/models/interfaces/category.interfaces'
-import { NextRequest, NextResponse } from 'next/server'
+import { geminiContentGenerator } from "@/library/gemini"
+import {
+  CategoryType,
+  SeoScores,
+  SeoSuggestions,
+} from "@/models/interfaces/category.interfaces"
+import { NextRequest, NextResponse } from "next/server"
 
 export async function POST(req: NextRequest) {
-  const { name, description, meta_title, meta_description, meta_keywords }: CategoryType = await req.json()
+  const {
+    name,
+    description,
+    meta_title,
+    meta_description,
+    meta_keywords,
+  }: CategoryType = await req.json()
 
   const suggestions: SeoSuggestions = {
     categoryName: [],
@@ -14,39 +24,62 @@ export async function POST(req: NextRequest) {
   }
 
   const scores: SeoScores = {
-      metaTitleLengthStatus: 'ideal',
-      metaTitleKeywordPresent: false,
-      metaDescriptionLengthStatus: 'ideal',
-      metaDescriptionKeywordPresent: false,
-      descriptionWordCountStatus: 'ideal',
-      descriptionKeywordDensity: 0,
-      descriptionKeywordPresence: false,
+    metaTitleLengthStatus: "ideal",
+    metaTitleKeywordPresent: false,
+    metaDescriptionLengthStatus: "ideal",
+    metaDescriptionKeywordPresent: false,
+    descriptionWordCountStatus: "ideal",
+    descriptionKeywordDensity: 0,
+    descriptionKeywordPresence: false,
   }
 
-  const countWords = (text: string) => text.split(/\s+/).filter(word => word.length > 0).length
+  const countWords = (text: string) =>
+    text.split(/\s+/).filter((word) => word.length > 0).length
   const countChars = (text: string) => text.length
 
   const metaTitleChars = countChars(meta_title)
-  if (metaTitleChars < 30) { scores.metaTitleLengthStatus = 'short' }
-  else if (metaTitleChars > 60) { scores.metaTitleLengthStatus = 'long' }
-  if (meta_keywords && meta_title.toLowerCase().includes(meta_keywords.toLowerCase())) { scores.metaTitleKeywordPresent = true }
+  if (metaTitleChars < 30) {
+    scores.metaTitleLengthStatus = "short"
+  } else if (metaTitleChars > 60) {
+    scores.metaTitleLengthStatus = "long"
+  }
+  if (
+    meta_keywords &&
+    meta_title.toLowerCase().includes(meta_keywords.toLowerCase())
+  ) {
+    scores.metaTitleKeywordPresent = true
+  }
 
   const metaDescriptionChars = countChars(meta_description)
-  if (metaDescriptionChars < 80) { scores.metaDescriptionLengthStatus = 'short' }
-  else if (metaDescriptionChars > 160) { scores.metaDescriptionLengthStatus = 'long' }
-  if (meta_keywords && meta_description.toLowerCase().includes(meta_keywords.toLowerCase())) { scores.metaDescriptionKeywordPresent = true }
+  if (metaDescriptionChars < 80) {
+    scores.metaDescriptionLengthStatus = "short"
+  } else if (metaDescriptionChars > 160) {
+    scores.metaDescriptionLengthStatus = "long"
+  }
+  if (
+    meta_keywords &&
+    meta_description.toLowerCase().includes(meta_keywords.toLowerCase())
+  ) {
+    scores.metaDescriptionKeywordPresent = true
+  }
 
   const descriptionWordCount = countWords(description)
-  if (descriptionWordCount < 100) { scores.descriptionWordCountStatus = 'short' }
-  else if (descriptionWordCount > 500) { scores.descriptionWordCountStatus = 'long' }
+  if (descriptionWordCount < 100) {
+    scores.descriptionWordCountStatus = "short"
+  } else if (descriptionWordCount > 500) {
+    scores.descriptionWordCountStatus = "long"
+  }
   if (meta_keywords) {
-    const keywordRegex = new RegExp(`\\b${meta_keywords}\\b`, 'gi')
+    const keywordRegex = new RegExp(`\\b${meta_keywords}\\b`, "gi")
     const keywordMatches = (description.match(keywordRegex) || []).length
     scores.descriptionKeywordPresence = keywordMatches > 0
-    scores.descriptionKeywordDensity = descriptionWordCount > 0 ? (keywordMatches / descriptionWordCount * 100) : 0
+    scores.descriptionKeywordDensity =
+      descriptionWordCount > 0
+        ? (keywordMatches / descriptionWordCount) * 100
+        : 0
     scores.descriptionKeywordDensity.toFixed(2)
   }
-  
+
   try {
     const prompt = `Anda adalah ahli SEO yang ringkas dan langsung. Berikan satu saran SEO terbaik untuk setiap elemen berdasarkan input yang diberikan. Jangan berikan alternatif, penjelasan, atau detail lainnya. Fokus pada satu string jawaban paling optimal untuk setiap kategori.
 
@@ -71,37 +104,66 @@ export async function POST(req: NextRequest) {
     const text = result.text()
 
     const jsonMatch = text.match(/```json\n([\s\S]*?)\n```/)
-    let geminiRawSuggestions: any = {}
+    let geminiRawSuggestions: Record<string, string[]> = {}
     if (jsonMatch && jsonMatch[1]) {
-        try {
-            geminiRawSuggestions = JSON.parse(jsonMatch[1])
-        } catch (parseError) {
-            console.error("Error parsing Gemini JSON response:", parseError)
-            suggestions.categoryDescription.push("Saran AI: " + text.replace(/`/g, ''))
-        }
+      try {
+        geminiRawSuggestions = JSON.parse(jsonMatch[1])
+      } catch (parseError) {
+        console.error("Error parsing Gemini JSON response:", parseError)
+        suggestions.categoryDescription.push(
+          "Saran AI: " + text.replace(/`/g, ""),
+        )
+      }
     } else {
-        suggestions.categoryDescription.push("Saran AI: " + text.replace(/`/g, ''))
+      suggestions.categoryDescription.push(
+        "Saran AI: " + text.replace(/`/g, ""),
+      )
     }
-    
+
     if (geminiRawSuggestions.categoryNameSuggestions) {
-        suggestions.categoryName.push(...geminiRawSuggestions.categoryNameSuggestions)
+      suggestions.categoryName.push(
+        ...geminiRawSuggestions.categoryNameSuggestions,
+      )
     }
     if (geminiRawSuggestions.descriptionSuggestions) {
-        suggestions.categoryDescription.push(...geminiRawSuggestions.descriptionSuggestions)
+      suggestions.categoryDescription.push(
+        ...geminiRawSuggestions.descriptionSuggestions,
+      )
     }
     if (geminiRawSuggestions.metaTitleSuggestions) {
-        suggestions.metaTitle.push(...geminiRawSuggestions.metaTitleSuggestions)
+      suggestions.metaTitle.push(...geminiRawSuggestions.metaTitleSuggestions)
     }
     if (geminiRawSuggestions.metaDescriptionSuggestions) {
-        suggestions.metaDescription.push(...geminiRawSuggestions.metaDescriptionSuggestions)
+      suggestions.metaDescription.push(
+        ...geminiRawSuggestions.metaDescriptionSuggestions,
+      )
     }
-    return NextResponse.json({ success: true, data: {suggestions, scores}, message: 'new suggestions' }, { status: 201 })
-
+    return NextResponse.json(
+      {
+        success: true,
+        data: { suggestions, scores },
+        message: "new suggestions",
+      },
+      { status: 201 },
+    )
   } catch (error) {
     console.error("Error calling Gemini API:", error)
-    suggestions.metaTitle.push("Gagal mendapatkan saran dari AI. Pastikan API Key valid dan model tersedia.")
-    suggestions.metaDescription.push("Gagal mendapatkan saran dari AI. Pastikan API Key valid dan model tersedia.")
-    suggestions.categoryDescription.push("Gagal mendapatkan saran dari AI. Pastikan API Key valid dan model tersedia.")
-    return NextResponse.json({ success: false, message: 'Failed to get suggestions', error: error.message }, { status: 500 })
-}
+    suggestions.metaTitle.push(
+      "Gagal mendapatkan saran dari AI. Pastikan API Key valid dan model tersedia.",
+    )
+    suggestions.metaDescription.push(
+      "Gagal mendapatkan saran dari AI. Pastikan API Key valid dan model tersedia.",
+    )
+    suggestions.categoryDescription.push(
+      "Gagal mendapatkan saran dari AI. Pastikan API Key valid dan model tersedia.",
+    )
+    return NextResponse.json(
+      {
+        success: false,
+        message: "Failed to get suggestions",
+        error: error.message,
+      },
+      { status: 500 },
+    )
+  }
 }
