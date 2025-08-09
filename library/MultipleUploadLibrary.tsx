@@ -59,7 +59,6 @@ export default class MultipleUploadLibrary {
     }
   }
 
-  // Tipe `req` tetap `IncomingMessage`
   async parse(req: IncomingMessage): Promise<UploadResponse> {
     const currentConfig = this.config
 

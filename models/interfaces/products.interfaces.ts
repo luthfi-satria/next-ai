@@ -8,7 +8,7 @@ export interface Products extends MongoDocument {
   slug: string
   description: string
   sku: string
-  brand: Brand
+  brand: Brands
   category: string
   storeUUId: string
   images: string[]
@@ -24,23 +24,37 @@ export interface Products extends MongoDocument {
   weight: number
   variants: ProductVariants[]
   averageRating: number
-  createdAt: Date
-  updatedAt: Date
+  createdAt: string
+  updatedAt: string
 }
 
-export type Brand = {
+export interface searchProduct {
+  name?: string
+  sku?: string
+  brand?: string
+  category?: string
+  store_id?: string
+  price_min?: string
+  price_max?: string
+  is_discount?: boolean
+  status?: PublishStatus
+  page?: string
+  limit?: string
+}
+
+export interface Brands {
   name: string
-  logoUrl: string
+  logoUrl?: string
 }
 
-export type Discount = {
+export interface Discount {
   type: string
   value: number
   start: Date
   end: Date
 }
 
-export type ProductVariants = {
+export interface ProductVariants {
   sku: string
   attributes: ProductVariantAttributes[]
   price: number
@@ -48,7 +62,7 @@ export type ProductVariants = {
   images: string[]
 }
 
-export type ProductVariantAttributes = {
+export interface ProductVariantAttributes {
   name: string
   value: string
 }
@@ -60,17 +74,17 @@ export enum Availability {
   BACKORDER = "BACK ORDER",
 }
 
-export type ProductOption = {
+export interface ProductOption {
   name: string
   values: string[]
 }
 
-export type ProductInfo = {
+export interface ProductInfo {
   name: string
   slug: string
   description: string
   sku: string
-  brand: Brand
+  brand: Brands
   category: string
   storeUUId: string
   images?: string[]
@@ -92,7 +106,7 @@ export const initProduct: ProductInfo = {
   slug: "",
   description: "",
   sku: "",
-  brand: <Brand>{
+  brand: <Brands>{
     name: "",
     logoUrl: "",
   },

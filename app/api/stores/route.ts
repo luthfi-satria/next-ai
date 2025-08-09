@@ -6,7 +6,7 @@ import { ElasticsearchQuery } from "@/models/interfaces/elasticsearch.interfaces
 import { Stores } from "@/models/interfaces/stores.interfaces"
 import { ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
-import { uuid } from "uuidv4"
+import { v4 } from "uuid"
 
 const INDEX_NAME = "stores_index"
 const COLLECTION_NAME = "stores"
@@ -111,7 +111,7 @@ export async function POST(req: NextRequest) {
     }
 
     const docCollection = await getMongoCollection<Stores>(COLLECTION_NAME)
-    newCollection.uuid_id = uuid()
+    newCollection.uuid_id = v4()
     const result = await docCollection.insertOne(newCollection)
 
     const insertDoc = {

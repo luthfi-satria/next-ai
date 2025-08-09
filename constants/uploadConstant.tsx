@@ -6,6 +6,13 @@ export const ALLOWED_MIME_TYPES = [
   "text/csv",
 ]
 
+export const ALLOWED_IMAGES_TYPE = [
+  "image/jpeg",
+  "image/jpg",
+  "image/png",
+  "image/webp",
+]
+
 export const MAX_FILE_SIZE = 5 // Bytes
 export const DEFAULT_UPLOAD_DIR = process.env.UPLOAD_DIR
 export const MAX_TEXT_LENGTH = 1000

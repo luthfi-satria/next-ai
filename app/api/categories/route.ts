@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
 
     if (parent) {
       esQuery.bool.filter.push({
-        term: { "parentId.keyword": parent },
+        term: { parentId: parent },
       })
     }
 
