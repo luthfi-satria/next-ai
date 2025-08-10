@@ -1,12 +1,7 @@
 // pages/api/products/route.ts
-import { ALLOWED_IMAGES_TYPE, MAX_FILE_SIZE } from "@/constants/uploadConstant"
 import { dateNowIsoFormat } from "@/helpers/dateHelpers"
-import { streamToBuffer } from "@/helpers/fileHelpers"
 import { catchError } from "@/helpers/responseHelper"
 import { customSlugify } from "@/helpers/slugify"
-import MultipleUploadLibrary, {
-  FormidableFile,
-} from "@/library/MultipleUploadLibrary"
 import elasticsearch from "@/library/elasticsearch"
 import { getMongoCollection } from "@/library/mongodb"
 import { getCategoryById } from "@/models/Query/category.query"
@@ -19,7 +14,6 @@ import {
   Products,
   searchProduct,
 } from "@/models/interfaces/products.interfaces"
-import { IncomingMessage } from "http"
 import { ObjectId } from "mongodb"
 import { NextRequest, NextResponse } from "next/server"
 import { v4 } from "uuid"
@@ -45,9 +39,9 @@ export async function GET(req: NextRequest) {
     }
     const esIds = esResult.hits.hits.map((hit) => new ObjectId(hit._id))
     const docCollection = await getMongoCollection<Products>(COLLECTION_NAME)
-
+    console.log(`esIds`, esIds)
     const collectionData = await docCollection
-      .find({ uuid_id: { $in: esIds } })
+      .find({ _id: { $in: esIds } })
       .toArray()
     response.total = esResult.hits.total.value
     response.data = collectionData
@@ -157,29 +151,55 @@ export async function PUT(req: NextRequest) {
     })
   }
 
+  const validMsg = await dataValidation(body)
+  if (validMsg != "") {
+    return NextResponse.json(
+      {
+        success: false,
+        message: validMsg,
+      },
+      { status: 401 },
+    )
+  }
+
+  const isVerified = await dataVerification(body)
+  if (isVerified != "") {
+    return NextResponse.json(
+      {
+        success: false,
+        message: isVerified,
+      },
+      { status: 401 },
+    )
+  }
+
   delete body._id
 
   const docCollection = await getMongoCollection<Products>(COLLECTION_NAME)
+  const dateNow = dateNowIsoFormat()
+  const updateDoc: Products = {
+    ...body,
+    availability: body.availability ?? Availability.INSTOCK,
+    minOrder: body.minOrder ?? 1,
+    currency: body.currency ?? Currency.RUPIAH,
+    options: body.options,
+    slug: await customSlugify(body.name),
+    discount: body.discount,
+    variants: body.variants,
+    createdAt: dateNow,
+    updatedAt: dateNow,
+  }
+
   const result = await docCollection.findOneAndUpdate(
     { _id: new ObjectId(id) },
     { $set: body },
     { returnDocument: "after" },
   )
 
-  const esDocument = {
-    name: result.name,
-    address: result.address,
-    city: result.city,
-    province: result.province,
-    postalCode: result.postalCode,
-    location: { lat: result.location.lat, lon: result.location.lon },
-    publish: result.publish,
-  }
-
   await elasticsearch.upsertDocument({
     index: INDEX_NAME,
     id: result._id.toHexString(),
-    document: esDocument,
+    document: updateDoc,
   })
 
   return NextResponse.json(
@@ -369,34 +389,4 @@ async function dataVerification(data: ProductInfo): Promise<string> {
     return "Store is not found"
   }
   return ""
-}
-
-async function uploadImages(req: NextRequest) {
-  const uploader = new MultipleUploadLibrary({
-    uploadPath: "products-uploads",
-    maxFileSize: MAX_FILE_SIZE,
-    mimeTypes: ALLOWED_IMAGES_TYPE,
-    maxNumberOfFiles: 10,
-  })
-  const bodyBuffer = await streamToBuffer(
-    req.body as ReadableStream<Uint8Array>,
-  )
-  const mockReq = new ReadableStream({
-    start(controller) {
-      controller.enqueue(bodyBuffer)
-      controller.close()
-    },
-  }) as unknown as IncomingMessage
-  mockReq.headers = {
-    "content-type":
-      req.headers.get("content-type") || "application/octet-stream",
-    "content-length": bodyBuffer.length.toString(),
-  }
-
-  const { files } = await uploader.parse(mockReq)
-
-  const uploadedFormidableFiles: FormidableFile[] = Object.values(files)
-    .flat()
-    .filter((file): file is FormidableFile => !!file)
-  return uploadedFormidableFiles
 }
