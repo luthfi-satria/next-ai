@@ -1,11 +1,16 @@
-import { ALLOWED_IMAGES_TYPE } from "@/constants/uploadConstant"
+import {
+  ALLOWED_IMAGES_TYPE,
+  DEFAULT_UPLOAD_DIR,
+} from "@/constants/uploadConstant"
 import { mkdir, stat, writeFile } from "fs/promises"
 import { join } from "path"
 import { v4 as uuidv4 } from "uuid"
 import mime from "mime"
+import fs from "fs"
 
 export interface bulkUploadImage {
   url: string
+  filename: string
   name: string
   type: string
 }
@@ -14,7 +19,7 @@ export async function bulkUploadImage(
   files: unknown,
   uploadDir: string,
 ): Promise<string | bulkUploadImage[]> {
-  const targetDir = join(process.cwd(), "public", "uploads", uploadDir)
+  const targetDir = join(process.cwd(), DEFAULT_UPLOAD_DIR, uploadDir)
   const uploadedFiles: bulkUploadImage[] = []
 
   if (!Array.isArray(files)) {
@@ -52,10 +57,32 @@ export async function bulkUploadImage(
 
     uploadedFiles.push({
       url: `/uploads/${uploadDir}/${filename}`,
+      filename: filename,
       name: file.name,
       type: file.type,
     })
   }
 
   return uploadedFiles
+}
+
+export async function bulkUploadUnlinkImage(
+  images: string[],
+): Promise<boolean> {
+  try {
+    for (const image of images) {
+      const imgPath = join(
+        process.cwd(),
+        DEFAULT_UPLOAD_DIR,
+        "products-uploads",
+        image,
+      )
+      await fs.promises.access(imgPath, fs.constants.F_OK)
+      fs.promises.unlink(imgPath)
+    }
+    return true
+  } catch (error: unknown) {
+    console.log(`error deleting file(s)`, error)
+    return false
+  }
 }
