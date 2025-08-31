@@ -255,7 +255,7 @@ export default function EditCategory() {
             >
               Back
             </Link>
-            <h2 className="h-full text-xl sm:text-2xl font-bold p-2 flex-grow">
+            <h2 className="h-full text-xl sm:text-2xl font-bold p-2 grow">
               Edit Category
             </h2>
           </div>

@@ -43,8 +43,9 @@ export default function HomePage() {
       },
       {
         id: "level",
-        label: "Find By Level",
-        type: "select",
+        label: "Level",
+        type: "autocomplete",
+        placeholder: "Find Level...",
         options: [
           { label: "Main Level", value: "0" },
           { label: "Second Level", value: "1" },
@@ -55,7 +56,8 @@ export default function HomePage() {
       {
         id: "publish",
         label: "Status",
-        type: "select",
+        type: "autocomplete",
+        placeholder: "Find Status...",
         options: publishStatus,
       },
     ]

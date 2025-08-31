@@ -66,7 +66,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   if (!isOpen) return null
 
   return (
-    <div className="fixed inset-0 bg-gray-600 bg-opacity-50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-gray-600 bg-gray/50 flex items-center justify-center z-50">
       <div
         ref={modalRef}
         className="bg-white rounded-lg shadow-xl p-6 m-4 max-w-sm w-full"
@@ -76,7 +76,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
         <div className="flex justify-end space-x-3">
           <button
             onClick={onClose}
-            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75 transition duration-200"
+            className="px-4 py-2 bg-gray-200 text-gray-800 rounded-md hover:bg-gray-300 focus:outline-hidden focus:ring-2 focus:ring-gray-400 focus:ring-gray/75 transition duration-200"
           >
             {cancelText}
           </button>
@@ -85,7 +85,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               onConfirm()
               onClose() // Close after confirming
             }}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-opacity-75 transition duration-200"
+            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 focus:outline-hidden focus:ring-2 focus:ring-red-500 focus:ring-gray/75 transition duration-200"
           >
             {confirmText}
           </button>

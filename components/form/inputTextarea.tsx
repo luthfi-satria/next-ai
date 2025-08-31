@@ -25,7 +25,7 @@ const TextAreaInput: React.FC<TextAreaInputProps> = ({
 }) => {
   const textareaId = id || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <div className="mb-4">
+    <div className="flex flex-col">
       <LabelInput id={textareaId} label={label} />
       <textarea
         name={name || textareaId}

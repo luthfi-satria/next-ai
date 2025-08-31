@@ -121,7 +121,7 @@ export default function EditUserPage() {
             >
               Back
             </Link>
-            <h2 className="h-full text-xl sm:text-2xl font-bold p-2 flex-grow">
+            <h2 className="h-full text-xl sm:text-2xl font-bold p-2 grow">
               Change {name} password
             </h2>
           </div>
@@ -130,7 +130,7 @@ export default function EditUserPage() {
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full py-2.5 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full py-2.5 px-6 bg-green-600 hover:bg-green-700 text-white font-semibold rounded-md shadow-md focus:outline-hidden focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isSubmitting ? "Update Password..." : "Update Password"}
             </button>

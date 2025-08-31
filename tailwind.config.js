@@ -1,12 +1,10 @@
 // tailwind.config.js
+
+const { heroui } = require("@heroui/theme")
+
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [
-    "./app/**/*.{js,ts,jsx,tsx,mdx}",
-    "./pages/**/*.{js,ts,jsx,tsx,mdx}",
-    "./components/**/*.{js,ts,jsx,tsx,mdx}",
-    "./src/**/*.{js,ts,jsx,tsx,mdx}",
-  ],
+  content: ["./app/**/*.{js,ts,jsx,tsx,mdx}", "./pages/**/*.{js,ts,jsx,tsx,mdx}", "./components/**/*.{js,ts,jsx,tsx,mdx}", "./src/**/*.{js,ts,jsx,tsx,mdx}"],
   safelist: [
     "from-blue-500",
     "from-gray-100",
@@ -50,5 +48,6 @@ module.exports = {
       },
     },
   },
+  darkMode: "class",
   plugins: [],
 }

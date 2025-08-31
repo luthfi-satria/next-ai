@@ -1,11 +1,6 @@
 import { SelectOption } from "@/models/interfaces/global.interfaces"
 import React, { useCallback, useEffect, useState } from "react"
-import CheckboxInput from "../form/inputCheckbox"
-import DateInput from "../form/inputDate"
-import SelectInput from "../form/inputSelect"
-import TextInput from "../form/inputText"
-import TextAreaInput from "../form/inputTextarea"
-import { InputGeneratorType } from "../form/inputGenerator"
+import InputGenerator from "../form/inputGenerator"
 
 export type FilterType =
   | "text"
@@ -15,6 +10,7 @@ export type FilterType =
   | "checkbox"
   | "textarea"
   | "daterange"
+  | "autocomplete"
 
 export interface FilterConfig {
   id: string // unique ID for filter (e.g., 'search', 'status', 'role')
@@ -25,8 +21,14 @@ export interface FilterConfig {
 }
 
 export interface FilterValues {
-  [key: string]: string | boolean
+  [key: string]: string | number | boolean
 }
+
+type ChangeEventOrValues =
+  | React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
+  | { name: string; value: string | number | boolean }
 
 // --- Komponen TableFilters ---
 
@@ -60,105 +62,43 @@ const TableFilters: React.FC<TableFiltersProps> = ({
     }
   }, [filterValues, onFilterChange, debounceTime])
 
-  const handleInputChange = useCallback(
-    (
-      e: React.ChangeEvent<
-        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-      >,
-    ) => {
-      const { name, value, type, checked } = e.target as HTMLInputElement
-      const inputValue = type === "checkbox" ? checked : value
-      setFilterValues((prevValues) => ({
-        ...prevValues,
-        [name]: inputValue,
-      }))
-    },
-    [],
-  )
+  const handleInputChange = useCallback((e: ChangeEventOrValues) => {
+    let name: string
+    let inputValue: string | number | boolean
 
-  const generateField = (obj: InputGeneratorType, key: string) => {
-    if (obj.type == "text") {
-      return (
-        <TextInput
-          key={key}
-          label={obj.label || obj.id}
-          name={obj.id}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handleInputChange(e)
-          }
-          value={(filterValues[obj.id] as string) || ""}
-          placeholder={obj.placeholder}
-        />
-      )
-    }
+    if ("target" in e) {
+      const { target } = e
+      name = target.name
 
-    if (obj.type == "select") {
-      return (
-        <SelectInput
-          key={key}
-          label={obj.label || obj.id}
-          name={obj.id}
-          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-            handleInputChange(e)
-          }
-          options={obj.options}
-          selectedValue={(filterValues[obj.id] as string) || ""}
-        />
-      )
+      if (target.type === "checkbox") {
+        inputValue = (target as HTMLInputElement).checked
+      } else {
+        inputValue = target.value
+      }
+    } else {
+      name = e.name
+      inputValue = e.value
     }
-
-    if (obj.type == "textarea") {
-      return (
-        <TextAreaInput
-          key={key}
-          label={obj.label || obj.id}
-          name={obj.id}
-          onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) =>
-            handleInputChange(e)
-          }
-          value={(filterValues[obj.id] as string) || ""}
-        />
-      )
+    setFilterValues((prevValues) => ({
+      ...prevValues,
+      [name]: inputValue,
+    }))
+  }, [])
+  const InputGeneratorProp = filtersConfig.map((items) => {
+    return {
+      ...items,
+      onChange: (
+        e: React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+        >,
+      ) => handleInputChange(e),
+      value: filterValues[items.id],
     }
-
-    if (obj.type == "date") {
-      return (
-        <DateInput
-          key={key}
-          label={obj.label || obj.id}
-          name={obj.id}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handleInputChange(e)
-          }
-          value={(filterValues[obj.id] as string) || ""}
-        />
-      )
-    }
-
-    if (obj.type == "checkbox") {
-      return (
-        <CheckboxInput
-          key={key}
-          label={obj.label || obj.id}
-          name={obj.id}
-          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
-            handleInputChange(e)
-          }
-          value={obj.id}
-          checked={(filterValues[obj.id] as boolean) || false}
-        />
-      )
-    }
-    return null
-  }
+  })
 
   return (
-    <div className="flex flex-wrap gap-4 p-4 bg-gray-50 rounded-lg shadow-sm mb-6">
-      {filtersConfig.map((filter) => (
-        <div key={filter.id} className="flex flex-col">
-          {generateField(filter, filter.id)}
-        </div>
-      ))}
+    <div className="flex flex-row flex-wrap gap-4 p-4 bg-white border border-slate-300 rounded-lg shadow-xs mb-6">
+      <InputGenerator outterClass="flex-dynamic" props={InputGeneratorProp} />
     </div>
   )
 }

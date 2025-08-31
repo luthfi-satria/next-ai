@@ -4,6 +4,7 @@ import DateInput from "./inputDate"
 import SelectInput from "./inputSelect"
 import TextInput from "./inputText"
 import TextAreaInput from "./inputTextarea"
+import AutocompleteInput from "./inputAutocomplete"
 
 export type InputGeneratorType = {
   id?: string
@@ -11,9 +12,11 @@ export type InputGeneratorType = {
   label?: string
   name?: string
   onChange?: (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
-    >,
+    e:
+      | React.ChangeEvent<
+          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | Element
+        >
+      | { name: string; value: string | number | boolean },
   ) => void
   value?: string
   placeholder?: string
@@ -22,35 +25,19 @@ export type InputGeneratorType = {
 }
 
 export default function InputGenerator({
+  outterClass,
   props,
   fieldsError,
 }: {
+  outterClass?: string
   props: InputGeneratorType[]
   fieldsError?: string[]
 }) {
   const generateField = (obj: InputGeneratorType, key: number) => {
-    if (obj.type == "text") {
+    if (obj.type == "text" || obj.type == "password" || obj.type == "number") {
       return (
         <TextInput
-          key={key}
-          label={obj.label || obj.name}
-          name={obj.name}
-          onChange={obj.onChange}
-          value={obj.value}
-          placeholder={obj.placeholder}
-          className={
-            fieldsError && fieldsError.includes(obj.name)
-              ? "bg-red-300  border-red-500"
-              : ""
-          }
-        />
-      )
-    }
-
-    if (obj.type == "password") {
-      return (
-        <TextInput
-          type="password"
+          id={obj.id || obj.name}
           key={key}
           label={obj.label || obj.name}
           name={obj.name}
@@ -69,6 +56,7 @@ export default function InputGenerator({
     if (obj.type == "select") {
       return (
         <SelectInput
+          id={obj.id || obj.name}
           key={key}
           label={obj.label || obj.name}
           name={obj.name}
@@ -88,6 +76,7 @@ export default function InputGenerator({
       return (
         <TextAreaInput
           key={key}
+          id={obj.id || obj.name}
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
@@ -105,6 +94,7 @@ export default function InputGenerator({
       return (
         <DateInput
           key={key}
+          id={obj.id || obj.name}
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
@@ -122,6 +112,7 @@ export default function InputGenerator({
       return (
         <Checkbox
           key={key}
+          id={obj.id || obj.name}
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
@@ -135,9 +126,29 @@ export default function InputGenerator({
         />
       )
     }
+
+    if (obj.type == "autocomplete") {
+      return (
+        <AutocompleteInput
+          key={key}
+          id={obj.id || obj.name}
+          label={obj.label || obj.name}
+          name={obj.name}
+          onChange={obj.onChange}
+          value={obj.value}
+          placeholder={obj.placeholder}
+          options={obj.options}
+          className={
+            fieldsError && fieldsError.includes(obj.name)
+              ? "bg-red-300  border-red-500"
+              : ""
+          }
+        />
+      )
+    }
   }
   return (
-    <div className="">
+    <div className={outterClass}>
       {props.map((items, index) => generateField(items, index))}
     </div>
   )

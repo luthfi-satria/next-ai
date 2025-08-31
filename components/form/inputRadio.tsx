@@ -22,7 +22,7 @@ const RadioInput: React.FC<RadioInputProps> = ({
 }) => {
   const groupName = name || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <fieldset className="mb-4">
+    <fieldset className="flex flex-col">
       <legend className="text-base font-medium text-gray-900">{label}</legend>
       <div className="mt-2 space-y-2">
         {options.map((option) => (

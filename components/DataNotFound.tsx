@@ -30,7 +30,7 @@ const NoDataFound = ({
 }) => {
   return (
     <div
-      className={`flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-sm text-center ${className}`}
+      className={`flex flex-col items-center justify-center p-8 bg-white rounded-lg shadow-xs text-center ${className}`}
     >
       <div className="mb-4">{icon}</div>
       <h3 className="text-xl font-semibold text-gray-800 mb-2">{title}</h3>

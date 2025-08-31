@@ -25,7 +25,7 @@ const TextInput: React.FC<TextInputProps> = ({
 }) => {
   const inputId = id || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <div className="mb-4">
+    <div className="flex flex-col">
       <LabelInput id={inputId} label={label} />
       <input
         type={type}

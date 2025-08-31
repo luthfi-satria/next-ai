@@ -190,7 +190,7 @@ export default function PlagiarismPage() {
                   <h3 className="text-lg font-semibold w-1/5">
                     Uploaded Files ({uploadedFiles.length})
                   </h3>
-                  <div className="flex-grow w-4/5 text-right">
+                  <div className="grow w-4/5 text-right">
                     <button
                       type="submit"
                       className="p-2 w-[100px] bg-teal-500 text-white font-bold rounded-md hover:bg-teal-600"
@@ -204,7 +204,7 @@ export default function PlagiarismPage() {
                   {uploadedFiles.map((file, index) => (
                     <div
                       key={index}
-                      className="flex items-center space-x-3 p-3 border rounded-md bg-white shadow-sm"
+                      className="flex items-center space-x-3 p-3 border rounded-md bg-white shadow-xs"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -240,7 +240,7 @@ export default function PlagiarismPage() {
                 {plagiarismResults.map((result, index) => (
                   <div
                     key={index}
-                    className="border p-4 rounded-md shadow-sm bg-gray-50"
+                    className="border p-4 rounded-md shadow-xs bg-gray-50"
                   >
                     <p className="font-bold text-lg">{result.fileName}</p>
                     {result.status === "Success" ? (

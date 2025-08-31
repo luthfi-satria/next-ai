@@ -49,12 +49,12 @@ export function AdminContentWrapperComponent({
     <>
       <div className="w-full min-h-screen bg-gray-50 flex flex-col items-center">
         <div className="w-full bg-white rounded-xl shadow-lg p-6 sm:p-8 lg:p-10">
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900 mb-8">
-            {props.title}
-          </h1>
-          <div className="flex flex-col mb-6">
+          <div className="flex-dynamic">
+            <h1 className="text-3xl sm:text-4xl font-extrabold text-gray-900">
+              {props.title}
+            </h1>
             {props.addButton && (
-              <div className="mb-6">
+              <div className="button-wrapper">
                 <Link
                   href={props.addButton.href}
                   className={`${BUTTON_GRADIENT_BLUE}`}
@@ -63,32 +63,32 @@ export function AdminContentWrapperComponent({
                 </Link>
               </div>
             )}
-            <div className="w-full flex flex-col">
-              {props.addFilter && (
-                <>
-                  <TableFilters
-                    filtersConfig={props.addFilter.config}
-                    onFilterChange={props.addFilter.onFilterChange}
-                    initialFilterValues={props.addFilter.currentFilters}
-                    // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
-                  />
-                  <div className="flex w-full gap-4 justify-end">
-                    <button
-                      onClick={props.addFilter.onSearch}
-                      className={BUTTON_GRADIENT_GREEN}
-                    >
-                      Find
-                    </button>
-                    <button
-                      onClick={props.addFilter.onReset}
-                      className={BUTTON_GRADIENT_GRAY}
-                    >
-                      Reset
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
+          </div>
+          <div className="w-full flex flex-col">
+            {props.addFilter && (
+              <>
+                <TableFilters
+                  filtersConfig={props.addFilter.config}
+                  onFilterChange={props.addFilter.onFilterChange}
+                  initialFilterValues={props.addFilter.currentFilters}
+                  // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
+                />
+                <div className="flex w-full gap-4 justify-end">
+                  <button
+                    onClick={props.addFilter.onSearch}
+                    className={BUTTON_GRADIENT_GREEN}
+                  >
+                    Find
+                  </button>
+                  <button
+                    onClick={props.addFilter.onReset}
+                    className={BUTTON_GRADIENT_GRAY}
+                  >
+                    Reset
+                  </button>
+                </div>
+              </>
+            )}
           </div>
           {children}
         </div>
@@ -113,7 +113,7 @@ export const translateName = (
 ) => {
   return (
     <div className="flex items-center">
-      <div className="flex-shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-semibold text-lg">
+      <div className="shrink-0 h-10 w-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-800 font-semibold text-lg">
         {value.charAt(0).toUpperCase()}
       </div>
       <div className="ml-4">

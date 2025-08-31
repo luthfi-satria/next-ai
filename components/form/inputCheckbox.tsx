@@ -22,7 +22,7 @@ const CheckboxInput: React.FC<CheckboxProps> = ({
 }) => {
   const checkboxId = id || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <div className="mb-4 flex items-center">
+    <div className="flex flex-row">
       <input
         id={checkboxId}
         name={name || checkboxId}
@@ -32,7 +32,7 @@ const CheckboxInput: React.FC<CheckboxProps> = ({
         onChange={(e) => onChange(e)}
         className={`focus:ring-indigo-500 h-4 w-4 text-indigo-600 border-gray-300 rounded ${className}`}
       />
-      <LabelInput id={checkboxId} label={label} />
+      <LabelInput id={checkboxId} label={label} className="grow-1" />
     </div>
   )
 }

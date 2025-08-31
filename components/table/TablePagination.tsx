@@ -58,7 +58,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
   const pageNumbersToShow = getPageNumbers()
 
   return (
-    <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6 rounded-b-lg shadow-sm">
+    <div className="flex justify-between items-center px-4 py-3 bg-gray-50 border-t border-gray-200 sm:px-6 rounded-b-lg shadow-xs">
       <div className="flex-1 flex justify-between sm:hidden">
         <button
           onClick={() => onPageChange(currentPage - 1)}
@@ -91,7 +91,7 @@ const TablePagination: React.FC<TablePaginationProps> = ({
         </div>
         <div>
           <nav
-            className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px"
+            className="relative z-0 inline-flex rounded-md shadow-xs -space-x-px"
             aria-label="Pagination"
           >
             <button

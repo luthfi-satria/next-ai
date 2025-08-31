@@ -21,7 +21,7 @@ const DateInput: React.FC<DateInputProps> = ({
 }) => {
   const dateId = id || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <div className="mb-4">
+    <div className="flex flex-col">
       <LabelInput id={dateId} label={label} />
       <input
         type="date"

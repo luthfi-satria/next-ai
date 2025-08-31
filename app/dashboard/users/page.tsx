@@ -40,12 +40,24 @@ export default function HomePage() {
     return [
       {
         id: "search",
-        label: "Find Name/email/username",
+        label: "Find",
         type: "text",
         placeholder: "Type nama or email or username...",
       },
-      { id: "role", label: "Role", type: "select", options: userRoleOptions },
-      { id: "status", label: "Status", type: "select", options: statusOptions },
+      {
+        id: "role",
+        label: "Role",
+        type: "autocomplete",
+        placeholder: "Find role...",
+        options: userRoleOptions,
+      },
+      {
+        id: "status",
+        label: "Status",
+        type: "autocomplete",
+        placeholder: "Find status",
+        options: statusOptions,
+      },
     ]
   }, [statusOptions, userRoleOptions])
 

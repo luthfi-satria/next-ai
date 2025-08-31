@@ -33,7 +33,7 @@ export default function ListComponent<T extends Record<string, unknown>>({
           ) : (
             <div className="flex flex-row gap-4">
               <div className="text-xl font-bold text-gray-800">{keyname}:</div>
-              <div className="text-white bg-green-700 rounded-md p-1 w-full flex-grow text-center">
+              <div className="text-white bg-green-700 rounded-md p-1 w-full grow text-center">
                 {typeof listObj[keyname] == "boolean"
                   ? listObj[keyname] == false
                     ? "No"

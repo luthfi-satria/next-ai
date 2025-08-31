@@ -31,7 +31,7 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
   const endDateId = `${prefix}-end-date`
 
   return (
-    <div className="mb-4">
+    <div className="flex flex-col">
       <LabelInput
         id={idPrefix}
         label={label}

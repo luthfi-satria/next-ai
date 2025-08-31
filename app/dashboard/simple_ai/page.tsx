@@ -66,7 +66,7 @@ export default function Home() {
   return (
     <>
       <div
-        className={`flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 lg:p-12 font-sans bg-gradient-to-br from-blue-50 via-gray-50 to-green-50`}
+        className={`flex min-h-screen flex-col items-center justify-center p-4 sm:p-8 lg:p-12 font-sans bg-linear-to-br from-blue-50 via-gray-50 to-green-50`}
       >
         <div className="bg-white p-8 sm:p-10 md:p-12 rounded-3xl shadow-2xl w-full max-w-3xl border border-gray-100 transform transition-transform duration-300 ease-out hover:scale-[1.005]">
           <h1 className="text-4xl sm:text-5xl font-extrabold mb-8 text-center text-gray-800 tracking-tight">
@@ -76,7 +76,7 @@ export default function Home() {
             <form onSubmit={handleSubmit} className="space-y-6">
               <textarea
                 // Penyesuaian padding di sini
-                className="w-full p-5 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 resize-y min-h-[220px] text-gray-800 text-lg placeholder-gray-400 transition-all duration-200 ease-in-out hover:border-gray-400 shadow-sm"
+                className="w-full p-5 border border-gray-300 rounded-xl focus:ring-blue-500 focus:border-blue-500 resize-y min-h-[220px] text-gray-800 text-lg placeholder-gray-400 transition-all duration-200 ease-in-out hover:border-gray-400 shadow-xs"
                 placeholder="Paste your article, document, or any text you want to summarize here..."
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
@@ -89,7 +89,7 @@ export default function Home() {
                 {/* Penambahan mb-8 di sini */}
                 <button
                   type="submit"
-                  className="flex-1 bg-gradient-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed flex items-center justify-center text-xl font-bold shadow-lg hover:shadow-xl"
+                  className="flex-1 bg-linear-to-r from-blue-500 to-blue-600 text-white py-4 px-6 rounded-xl hover:from-blue-600 hover:to-blue-700 transition-all duration-300 ease-in-out disabled:from-blue-300 disabled:to-blue-400 disabled:cursor-not-allowed flex items-center justify-center text-xl font-bold shadow-lg hover:shadow-xl"
                   disabled={isLoading || inputText.trim().length === 0}
                 >
                   {isLoading ? (
