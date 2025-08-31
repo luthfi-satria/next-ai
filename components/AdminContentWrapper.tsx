@@ -54,7 +54,7 @@ export function AdminContentWrapperComponent({
               {props.title}
             </h1>
             {props.addButton && (
-              <div className="button-wrapper">
+              <div className="button-wrapper max-w-1/5">
                 <Link
                   href={props.addButton.href}
                   className={`${BUTTON_GRADIENT_BLUE}`}
@@ -71,22 +71,10 @@ export function AdminContentWrapperComponent({
                   filtersConfig={props.addFilter.config}
                   onFilterChange={props.addFilter.onFilterChange}
                   initialFilterValues={props.addFilter.currentFilters}
+                  onSearch={props.addFilter.onSearch}
+                  onReset={props.addFilter.onReset}
                   // debounceTime={500} // Anda bisa customize debounce time jika diperlukan
                 />
-                <div className="flex w-full gap-4 justify-end">
-                  <button
-                    onClick={props.addFilter.onSearch}
-                    className={BUTTON_GRADIENT_GREEN}
-                  >
-                    Find
-                  </button>
-                  <button
-                    onClick={props.addFilter.onReset}
-                    className={BUTTON_GRADIENT_GRAY}
-                  >
-                    Reset
-                  </button>
-                </div>
               </>
             )}
           </div>

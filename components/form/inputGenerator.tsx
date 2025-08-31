@@ -6,19 +6,19 @@ import TextInput from "./inputText"
 import TextAreaInput from "./inputTextarea"
 import AutocompleteInput from "./inputAutocomplete"
 
+export type ChangeEventOrValues =
+  | React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | Element
+    >
+  | { name: string; value: string | number | boolean }
+
 export type InputGeneratorType = {
   id?: string
   type: string
   label?: string
   name?: string
-  onChange?: (
-    e:
-      | React.ChangeEvent<
-          HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | Element
-        >
-      | { name: string; value: string | number | boolean },
-  ) => void
-  value?: string
+  onChange?: (e: ChangeEventOrValues) => void
+  value?: string | number | boolean
   placeholder?: string
   options?: SelectOption[]
   checked?: boolean
@@ -42,7 +42,7 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
-          value={obj.value}
+          value={obj.value as string}
           placeholder={obj.placeholder}
           className={
             fieldsError && fieldsError.includes(obj.name)
@@ -62,7 +62,7 @@ export default function InputGenerator({
           name={obj.name}
           onChange={obj.onChange}
           options={obj.options}
-          selectedValue={obj.value}
+          selectedValue={obj.value as string}
           className={
             fieldsError && fieldsError.includes(obj.name)
               ? "bg-red-300  border-red-500"
@@ -80,7 +80,7 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
-          value={obj.value}
+          value={obj.value as string}
           className={
             fieldsError && fieldsError.includes(obj.name)
               ? "bg-red-300  border-red-500"
@@ -98,7 +98,7 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
-          value={obj.value}
+          value={obj.value as string}
           className={
             fieldsError && fieldsError.includes(obj.name)
               ? "bg-red-300  border-red-500"
@@ -116,7 +116,7 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
-          value={obj.value}
+          value={obj.value as string}
           checked={obj.checked}
           className={
             fieldsError && fieldsError.includes(obj.name)
@@ -135,7 +135,7 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
-          value={obj.value}
+          value={obj.value as string}
           placeholder={obj.placeholder}
           options={obj.options}
           className={
