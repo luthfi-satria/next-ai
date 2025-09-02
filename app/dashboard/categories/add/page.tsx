@@ -1,8 +1,11 @@
 "use client"
-import InputGenerator from "@/components/form/inputGenerator"
+import InputGenerator, {
+  ChangeEventOrValues,
+} from "@/components/form/inputGenerator"
 import ListComponent from "@/components/list/ListComponent"
 import { BUTTON_DEFAULT, BUTTON_SUBMIT } from "@/constants/formStyleConstant"
 import { GETAPICALL, PUSHAPI } from "@/helpers/apiRequest"
+import { formEventHandler } from "@/helpers/formHandler"
 import {
   convertObjectToSelectOptions,
   enumToSelectOptions,
@@ -50,12 +53,8 @@ export default function AddCategoryPage() {
     getParentCategory()
   }, [])
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    const { name, value } = e.target
+  const handleInputChange = (e: ChangeEventOrValues) => {
+    const { name, value } = formEventHandler(e)
     setCategory((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -150,6 +149,7 @@ export default function AddCategoryPage() {
       required: true,
     },
     {
+      id: "parentId",
       type: "select",
       label: "Parent Category",
       name: "parentId",
@@ -195,7 +195,8 @@ export default function AddCategoryPage() {
       required: true,
     },
     {
-      type: "select",
+      id: "publish",
+      type: "autocomplete",
       name: "publish",
       value: category?.publish || PublishStatus.PUBLISHED,
       onChange: handleInputChange,

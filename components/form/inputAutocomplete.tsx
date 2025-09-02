@@ -35,7 +35,7 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   useEffect(() => {
     // Filter data based on inputValue
     const filtered = options.filter((item) => {
-      return item.value.toLowerCase().includes(inputValue?.toLowerCase())
+      return item.label.toLowerCase().includes(inputValue?.toLowerCase())
     })
     setSuggestions(filtered)
   }, [inputValue, options])
@@ -76,7 +76,7 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           name={name || id}
           type="text"
           value={inputValue}
-          className={`${className} w-full border border-gray-400 p-1 rounded-tl-lg rounded-bl-xl`}
+          className={`${className} w-full border border-gray-400 py-1.5 px-2 rounded-tl-lg rounded-bl-xl`}
           onChange={handleInputChange}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}

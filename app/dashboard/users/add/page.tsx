@@ -1,6 +1,9 @@
 "use client"
-import InputGenerator from "@/components/form/inputGenerator"
+import InputGenerator, {
+  ChangeEventOrValues,
+} from "@/components/form/inputGenerator"
 import { PUSHAPI } from "@/helpers/apiRequest"
+import { formEventHandler } from "@/helpers/formHandler"
 import { enumToSelectOptions } from "@/helpers/objectHelpers"
 import { catchError } from "@/helpers/responseHelper"
 import {
@@ -19,10 +22,8 @@ export default function AddUserPage() {
   const [fieldsError, setFieldsError] = useState<string[]>([])
   const [responseMessage, setResponseMessage] = useState<string | null>(null)
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target
+  const handleInputChange = (e: ChangeEventOrValues) => {
+    const { name, value } = formEventHandler(e)
     setNewUser((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -113,7 +114,8 @@ export default function AddUserPage() {
       required: true,
     },
     {
-      type: "select",
+      id: "roles",
+      type: "autocomplete",
       label: "Roles",
       name: "roles",
       value: newUser?.roles || UserRoles.CUSTOMER,
@@ -122,7 +124,8 @@ export default function AddUserPage() {
       required: true,
     },
     {
-      type: "select",
+      id: "status",
+      type: "autocomplete",
       name: "status",
       value: newUser?.status || EnumUserStatus.ACTIVE,
       onChange: handleInputChange,
@@ -130,6 +133,7 @@ export default function AddUserPage() {
       options: enumToSelectOptions(EnumUserStatus),
     },
     {
+      id: "password",
       type: "password",
       name: "password",
       placeholder: "********",
@@ -138,6 +142,7 @@ export default function AddUserPage() {
       required: true,
     },
     {
+      id: "repassword",
       type: "password",
       name: "repassword",
       placeholder: "********",

@@ -13,51 +13,7 @@ const COLLECTION_NAME = "stores"
 
 export async function GET(req: NextRequest) {
   try {
-    const { search, publish, page, limit } = Object.fromEntries(
-      req.nextUrl.searchParams.entries(),
-    )
-
-    const currPage = parseInt(page || "1", 10)
-    const sizeParam = parseInt(limit || "10", 10)
-    const from = (currPage - 1) * sizeParam
-
-    let esQuery: ElasticsearchQuery = {
-      bool: {
-        must: [],
-        filter: [],
-      },
-    }
-    if (search) {
-      esQuery.bool.must.push({
-        multi_match: {
-          query: search,
-          fields: [
-            "name.autocomplete",
-            "address.autocomplete",
-            "city.autocomplete",
-            "province.autocomplete",
-          ],
-          type: "best_fields",
-        },
-      })
-    }
-
-    if (publish) {
-      esQuery.bool.filter.push({
-        term: { publish: publish },
-      })
-    }
-
-    if (esQuery.bool.must.length === 0 && esQuery.bool.filter.length === 0) {
-      esQuery = { match_all: {} }
-    }
-
-    const esResult = await elasticsearch.search({
-      index: INDEX_NAME,
-      query: esQuery,
-      size: sizeParam,
-      from: from,
-    })
+    const { esResult, page, limit } = await buildElasticQuery(req)
 
     const response = {
       page: page,
@@ -204,4 +160,56 @@ export async function PUT(req: NextRequest) {
     { success: true, message: `Update success`, data: result },
     { status: 200 },
   )
+}
+
+async function buildElasticQuery(req) {
+  const { search, city, province, publish, page, limit } = Object.fromEntries(
+    req.nextUrl.searchParams.entries(),
+  )
+
+  const currPage = parseInt(page || "1", 10)
+  const sizeParam = parseInt(limit || "10", 10)
+  const from = (currPage - 1) * sizeParam
+
+  let esQuery: ElasticsearchQuery = {
+    bool: {
+      must: [],
+      filter: [],
+    },
+  }
+  if (search) {
+    esQuery.bool.filter.push({
+      term: { "name.autocomplete": search },
+    })
+  }
+
+  if (city) {
+    esQuery.bool.filter.push({
+      term: { "city.autocomplete": city },
+    })
+  }
+
+  if (province) {
+    esQuery.bool.filter.push({
+      term: { "province.autocomplete": province },
+    })
+  }
+
+  if (publish) {
+    esQuery.bool.filter.push({
+      term: { publish: publish },
+    })
+  }
+
+  if (esQuery.bool.must.length === 0 && esQuery.bool.filter.length === 0) {
+    esQuery = { match_all: {} }
+  }
+
+  const esResult = await elasticsearch.search({
+    index: INDEX_NAME,
+    query: esQuery,
+    size: sizeParam,
+    from: from,
+  })
+  return { esResult, page, limit }
 }

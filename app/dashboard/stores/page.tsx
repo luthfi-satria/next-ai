@@ -40,6 +40,18 @@ export default function HomePage() {
         placeholder: "Type stores name...",
       },
       {
+        id: "city",
+        label: "Find City",
+        type: "text",
+        placeholder: "Type city name...",
+      },
+      {
+        id: "province",
+        label: "Find Province",
+        type: "text",
+        placeholder: "Type province name...",
+      },
+      {
         id: "publish",
         label: "Publish Status",
         type: "select",

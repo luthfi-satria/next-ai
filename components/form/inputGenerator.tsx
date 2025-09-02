@@ -25,7 +25,7 @@ export type InputGeneratorType = {
 }
 
 export default function InputGenerator({
-  outterClass,
+  outterClass = "flex flex-col gap-4",
   props,
   fieldsError,
 }: {
@@ -38,6 +38,7 @@ export default function InputGenerator({
       return (
         <TextInput
           id={obj.id || obj.name}
+          type={obj.type}
           key={key}
           label={obj.label || obj.name}
           name={obj.name}

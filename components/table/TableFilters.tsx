@@ -5,6 +5,7 @@ import {
   BUTTON_GRADIENT_GRAY,
   BUTTON_GRADIENT_GREEN,
 } from "@/constants/formStyleConstant"
+import { formEventHandler } from "@/helpers/formHandler"
 
 export type FilterType =
   | "text"
@@ -64,27 +65,10 @@ const TableFilters: React.FC<TableFiltersProps> = ({
 
   const handleInputChange = useCallback(
     (e: ChangeEventOrValues) => {
-      let name: string
-      let inputValue: string | number | boolean
-
-      if ("target" in e) {
-        const { target } = e as {
-          target: HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-        }
-        name = target.name
-
-        if (target.type === "checkbox") {
-          inputValue = (target as HTMLInputElement).checked
-        } else {
-          inputValue = target.value
-        }
-      } else {
-        name = e.name
-        inputValue = e.value
-      }
+      const { name, value } = formEventHandler(e)
       setFilterValues((prevValues) => ({
         ...prevValues,
-        [name]: inputValue,
+        [name]: value,
       }))
     },
     [setFilterValues],

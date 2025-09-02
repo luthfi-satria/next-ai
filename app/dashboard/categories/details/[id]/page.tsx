@@ -1,9 +1,12 @@
 "use client"
 import NoDataFound from "@/components/DataNotFound"
-import InputGenerator from "@/components/form/inputGenerator"
+import InputGenerator, {
+  ChangeEventOrValues,
+} from "@/components/form/inputGenerator"
 import ListComponent from "@/components/list/ListComponent"
 import { BUTTON_DEFAULT, BUTTON_SUBMIT } from "@/constants/formStyleConstant"
 import { GETAPICALL, PUSHAPI } from "@/helpers/apiRequest"
+import { formEventHandler } from "@/helpers/formHandler"
 import {
   convertObjectToSelectOptions,
   enumToSelectOptions,
@@ -87,12 +90,8 @@ export default function EditCategory() {
     }
   }
 
-  const handleInputChange = (
-    e: React.ChangeEvent<
-      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
-    >,
-  ) => {
-    const { name, value } = e.target
+  const handleInputChange = (e: ChangeEventOrValues) => {
+    const { name, value } = formEventHandler(e)
     setCategory((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -188,7 +187,7 @@ export default function EditCategory() {
       required: true,
     },
     {
-      type: "select",
+      type: "autocomplete",
       label: "Parent Category",
       name: "parentId",
       placeholder: "e.g., kids-fashion",
@@ -233,7 +232,7 @@ export default function EditCategory() {
       required: true,
     },
     {
-      type: "select",
+      type: "autocomplete",
       name: "publish",
       value: Category?.publish || PublishStatus.PUBLISHED,
       onChange: handleInputChange,
@@ -260,7 +259,7 @@ export default function EditCategory() {
             </h2>
           </div>
           <form onSubmit={handleUpdateCategory} className="space-y-4 w-3/4">
-            <InputGenerator props={inputForm} />
+            {parentOptions.length > 0 && <InputGenerator props={inputForm} />}
             {aiSuggestions && (
               <ListComponent<SeoSuggestions>
                 title="Suggestions"

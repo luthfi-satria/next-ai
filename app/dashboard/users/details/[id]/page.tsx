@@ -1,7 +1,10 @@
 "use client"
 import NoDataFound from "@/components/DataNotFound"
-import InputGenerator from "@/components/form/inputGenerator"
+import InputGenerator, {
+  ChangeEventOrValues,
+} from "@/components/form/inputGenerator"
 import { GETAPICALL, PUSHAPI } from "@/helpers/apiRequest"
+import { formEventHandler } from "@/helpers/formHandler"
 import { enumToSelectOptions } from "@/helpers/objectHelpers"
 import { catchError } from "@/helpers/responseHelper"
 import {
@@ -53,10 +56,8 @@ export default function EditUserPage() {
     }
   }, [id, isFirstLoad, handleGetUser])
 
-  const handleInputChange = (
-    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>,
-  ) => {
-    const { name, value } = e.target
+  const handleInputChange = (e: ChangeEventOrValues) => {
+    const { name, value } = formEventHandler(e)
     setNewUser((prev) => ({ ...prev, [name]: value }))
   }
 
@@ -133,17 +134,21 @@ export default function EditUserPage() {
       required: true,
     },
     {
-      type: "select",
+      id: "roles",
+      type: "autocomplete",
       label: "Roles",
       name: "roles",
+      placeholder: "Select roles...",
       value: newUser?.roles || UserRoles.CUSTOMER,
       options: enumToSelectOptions(UserRoles),
       onChange: handleInputChange,
       required: true,
     },
     {
+      id: "status",
       type: "select",
       name: "status",
+      placeholder: "Select status...",
       value: newUser?.status || EnumUserStatus.ACTIVE,
       onChange: handleInputChange,
       required: true,
