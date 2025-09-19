@@ -1,29 +1,26 @@
 import { SelectOption } from "@/models/interfaces/global.interfaces"
 import React, { useState, useEffect, useRef } from "react"
 import { LabelInput } from "./inputLabel"
-import { CheckIcon, ChevronDownIcon } from "@heroicons/react/outline"
+import { CheckIcon, ChevronDownIcon, CogIcon } from "@heroicons/react/outline"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface AutocompleteInputProps {
-  label: string
-  value: string
-  onChange: (e: { name: string; value: string | number | boolean }) => void
-  placeholder?: string
-  type?: React.HTMLInputTypeAttribute
-  name?: string
-  id?: string
+interface AutocompleteInputProps extends InputGeneratorType {
   className?: string
   options: SelectOption[]
+  isLoading?: boolean
 }
 
 const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   label,
   value,
   onChange,
+  customEvent,
   placeholder,
   id,
   className,
   options,
   name,
+  isLoading = false,
 }) => {
   const [inputValue, setInputValue] = useState(
     options.find((item) => item.value === value)?.label ?? "",
@@ -56,6 +53,9 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   const handleInputChange = (e) => {
     setInputValue(e.target.value)
     setShowSuggestions(true)
+    if (customEvent) {
+      customEvent(e)
+    }
   }
 
   const handleSuggestionClick = (suggestion: {
@@ -81,9 +81,11 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}
         />
-        <ChevronDownIcon className="border border-l-0 border-gray-400 font-bold text-sm w-6 rounded-tr-lg rounded-br-lg bg-slate-200" />
+        <div className="flex align-middle border border-l-0 border-gray-400 font-bold text-sm rounded-tr-lg rounded-br-lg bg-slate-200">
+          <ChevronDownIcon className="w-6" />
+        </div>
       </div>
-      {showSuggestions && suggestions.length > 0 && (
+      {!isLoading && showSuggestions && suggestions.length > 0 && (
         <ul className="absolute z-10 w-full bg-white border border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
           {suggestions.map((suggestion, index) => (
             <li
@@ -99,6 +101,17 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           ))}
         </ul>
       )}
+      {!isLoading &&
+        suggestions.length == 0 &&
+        inputValue.length > 0 &&
+        inputValue.length < 4 && (
+          <div className="absolute z-10 w-full text-gray-400 bg-white border p-2 border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+            <div className="flex flex-row gap-2 align-middle w-full text-sm">
+              <CogIcon className="w-6 animate-spin" />
+              Fetch options, please wait...
+            </div>
+          </div>
+        )}
     </div>
   )
 }

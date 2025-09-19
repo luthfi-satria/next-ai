@@ -1,15 +1,11 @@
 import { FORM_BASE_CLASSNAME } from "@/constants/formStyleConstant"
 import React from "react"
 import { LabelInput } from "./inputLabel"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface TextAreaInputProps {
-  label: string
+interface TextAreaInputProps extends InputGeneratorType {
   value: string
-  onChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void
-  placeholder?: string
   rows?: number
-  name?: string
-  id?: string
   className?: string
 }
 

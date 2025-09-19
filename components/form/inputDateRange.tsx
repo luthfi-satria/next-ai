@@ -2,9 +2,9 @@ import { FORM_LABEL } from "@/constants/formStyleConstant"
 import React, { ChangeEvent } from "react"
 import DateInput from "./inputDate"
 import { LabelInput } from "./inputLabel"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface DateRangeInputProps {
-  label: string
+interface DateRangeInputProps extends InputGeneratorType {
   startDate: string // Format YYYY-MM-DD
   endDate: string // Format YYYY-MM-DD
   onStartDateChange: (value: ChangeEvent<Element>) => void
@@ -12,7 +12,6 @@ interface DateRangeInputProps {
   startName?: string
   endName?: string
   idPrefix?: string
-  className?: string
 }
 
 const DateRangeInput: React.FC<DateRangeInputProps> = ({
@@ -46,7 +45,7 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
           />
           <DateInput
             label="Start Date"
-            onChange={(e) => onStartDateChange(e)}
+            onChange={onStartDateChange}
             value={startDate}
             id={startDateId}
             name={startName || `${prefix}-start`}
@@ -61,7 +60,7 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
           />
           <DateInput
             label="End Date"
-            onChange={(e) => onEndDateChange(e)}
+            onChange={onEndDateChange}
             value={endDate}
             id={endDateId}
             name={endName || `${prefix}-end`}

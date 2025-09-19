@@ -1,16 +1,10 @@
 import { FORM_BASE_CLASSNAME } from "@/constants/formStyleConstant"
 import React from "react"
 import { LabelInput } from "./inputLabel"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface TextInputProps {
-  label: string
+interface TextInputProps extends InputGeneratorType {
   value: string
-  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
-  placeholder?: string
-  type?: React.HTMLInputTypeAttribute // 'text', 'password', 'email', 'number', etc.
-  name?: string
-  id?: string
-  className?: string
 }
 
 const TextInput: React.FC<TextInputProps> = ({

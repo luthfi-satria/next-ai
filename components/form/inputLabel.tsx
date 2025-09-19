@@ -1,11 +1,7 @@
 import { FORM_LABEL } from "@/constants/formStyleConstant"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface TextLabelProps {
-  id: string
-  label: string
-  className?: string
-}
-export const LabelInput: React.FC<TextLabelProps> = ({
+export const LabelInput: React.FC<InputGeneratorType> = ({
   id,
   label,
   className,

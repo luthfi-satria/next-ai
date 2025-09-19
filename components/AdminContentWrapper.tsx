@@ -3,11 +3,7 @@
 import Link from "next/link"
 import ConfirmModal from "./ConfirmModal"
 import TableFilters, { FilterConfig, FilterValues } from "./table/TableFilters"
-import {
-  BUTTON_GRADIENT_BLUE,
-  BUTTON_GRADIENT_GRAY,
-  BUTTON_GRADIENT_GREEN,
-} from "@/constants/formStyleConstant"
+import { BUTTON_GRADIENT_BLUE } from "@/constants/formStyleConstant"
 
 export type ContentProps = {
   title: string

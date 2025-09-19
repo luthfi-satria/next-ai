@@ -1,14 +1,9 @@
 import React from "react"
 import { LabelInput } from "./inputLabel"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface CheckboxProps {
-  label: string
-  checked: boolean
-  onChange: (checked: React.ChangeEvent<Element>) => void
-  name?: string
+interface CheckboxProps extends InputGeneratorType {
   value?: string
-  id?: string
-  className?: string
 }
 
 const CheckboxInput: React.FC<CheckboxProps> = ({

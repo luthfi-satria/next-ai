@@ -17,6 +17,11 @@ export interface SelectOption {
   label: string
 }
 
+export interface RadioOption {
+  label: string
+  value: string
+}
+
 export enum PublishStatus {
   PUBLISHED = "PUBLISHED",
   UNPUBLISHED = "UNPUBLISHED",
@@ -25,4 +30,9 @@ export enum PublishStatus {
 export enum Currency {
   DOLLAR = "$",
   RUPIAH = "IDR",
+}
+
+export type priceRange = {
+  min: number
+  max: number
 }

@@ -1,6 +1,8 @@
-import { SelectOption } from "@/models/interfaces/global.interfaces"
 import React, { useCallback, useEffect, useState } from "react"
-import InputGenerator, { ChangeEventOrValues } from "../form/inputGenerator"
+import InputGenerator, {
+  ChangeEventOrValues,
+  InputGeneratorType,
+} from "../form/inputGenerator"
 import {
   BUTTON_GRADIENT_GRAY,
   BUTTON_GRADIENT_GREEN,
@@ -16,13 +18,11 @@ export type FilterType =
   | "textarea"
   | "daterange"
   | "autocomplete"
+  | "price_range"
 
-export interface FilterConfig {
-  id: string // unique ID for filter (e.g., 'search', 'status', 'role')
-  label: string // Showing label (e.g., 'Find', 'Status', 'Role', 'etc')
-  type: FilterType // Filter type (text or select)
-  placeholder?: string // Placeholder for input text
-  options?: SelectOption[] // filter select options
+export interface FilterConfig extends InputGeneratorType {
+  isLoading?: boolean
+  callback?: (e: React.ChangeEvent) => void
 }
 
 export interface FilterValues {

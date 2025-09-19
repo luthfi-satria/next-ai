@@ -1,10 +1,15 @@
-import { SelectOption } from "@/models/interfaces/global.interfaces"
+import {
+  RadioOption,
+  SelectOption,
+} from "@/models/interfaces/global.interfaces"
 import Checkbox from "./inputCheckbox"
 import DateInput from "./inputDate"
 import SelectInput from "./inputSelect"
 import TextInput from "./inputText"
 import TextAreaInput from "./inputTextarea"
 import AutocompleteInput from "./inputAutocomplete"
+import PriceRangeInput from "./inputPriceRange"
+import RadioInput from "./inputRadio"
 
 export type ChangeEventOrValues =
   | React.ChangeEvent<
@@ -12,15 +17,17 @@ export type ChangeEventOrValues =
     >
   | { name: string; value: string | number | boolean }
 
-export type InputGeneratorType = {
+export interface InputGeneratorType {
   id?: string
-  type: string
+  type?: string
   label?: string
   name?: string
   onChange?: (e: ChangeEventOrValues) => void
+  customEvent?: (e: ChangeEventOrValues) => void
   value?: string | number | boolean
   placeholder?: string
-  options?: SelectOption[]
+  options?: SelectOption[] | RadioOption[] | { [key: string]: string }
+  className?: string
   checked?: boolean
 }
 
@@ -62,7 +69,7 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
-          options={obj.options}
+          options={obj.options as SelectOption[]}
           selectedValue={obj.value as string}
           className={
             fieldsError && fieldsError.includes(obj.name)
@@ -128,6 +135,25 @@ export default function InputGenerator({
       )
     }
 
+    if (obj.type == "radio") {
+      return (
+        <RadioInput
+          id={obj.id || obj.name}
+          key={key}
+          label={obj.label || obj.name}
+          name={obj.name}
+          onChange={obj.onChange}
+          options={obj.options as RadioOption[]}
+          selectedValue={obj.value as string}
+          className={
+            fieldsError && fieldsError.includes(obj.name)
+              ? "bg-red-300  border-red-500"
+              : ""
+          }
+        />
+      )
+    }
+
     if (obj.type == "autocomplete") {
       return (
         <AutocompleteInput
@@ -136,9 +162,28 @@ export default function InputGenerator({
           label={obj.label || obj.name}
           name={obj.name}
           onChange={obj.onChange}
+          customEvent={obj.customEvent}
           value={obj.value as string}
           placeholder={obj.placeholder}
-          options={obj.options}
+          options={obj.options as SelectOption[]}
+          className={
+            fieldsError && fieldsError.includes(obj.name)
+              ? "bg-red-300  border-red-500"
+              : ""
+          }
+        />
+      )
+    }
+
+    if (obj.type == "price_range") {
+      return (
+        <PriceRangeInput
+          key={key}
+          idPrefix={obj.id}
+          label={obj.label || obj.name}
+          name={obj.name}
+          options={obj.options as { [key: string]: string }}
+          onChange={obj.onChange}
           className={
             fieldsError && fieldsError.includes(obj.name)
               ? "bg-red-300  border-red-500"

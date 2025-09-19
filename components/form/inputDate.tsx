@@ -1,14 +1,11 @@
 import { FORM_BASE_CLASSNAME } from "@/constants/formStyleConstant"
 import React from "react"
 import { LabelInput } from "./inputLabel"
+import { InputGeneratorType } from "./inputGenerator"
 
-interface DateInputProps {
-  label: string
-  value: string // Format YYYY-MM-DD
-  onChange: (value: React.ChangeEvent<Element>) => void
-  name?: string
+interface DateInputProps extends InputGeneratorType {
   className?: string
-  id?: string
+  value?: string
 }
 
 const DateInput: React.FC<DateInputProps> = ({

@@ -1,20 +1,16 @@
 import { FORM_SELECT_CLASSNAME } from "@/constants/formStyleConstant"
 import React from "react"
 import { LabelInput } from "./inputLabel"
+import { InputGeneratorType } from "./inputGenerator"
 
 interface SelectOption {
   label: string
   value: string
 }
 
-interface SelectInputProps {
-  label: string
+interface SelectInputProps extends InputGeneratorType {
   options: SelectOption[]
   selectedValue: string
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void
-  name?: string
-  className?: string
-  id?: string
 }
 
 const SelectInput: React.FC<SelectInputProps> = ({

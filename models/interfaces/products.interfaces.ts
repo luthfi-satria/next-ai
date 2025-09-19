@@ -34,9 +34,8 @@ export interface searchProduct {
   brand?: string
   category?: string
   store_id?: string
-  price_min?: string
-  price_max?: string
-  is_discount?: boolean
+  min_price?: string
+  max_price?: string
   status?: PublishStatus
   page?: string
   limit?: string

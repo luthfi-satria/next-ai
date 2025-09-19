@@ -8,14 +8,18 @@ import {
 import TableContentComponent from "@/components/table/TableContents"
 import { FilterConfig, FilterValues } from "@/components/table/TableFilters"
 import TablePagination from "@/components/table/TablePagination"
-import { PopulateTable } from "@/helpers/apiRequest"
-import { enumToSelectOptions } from "@/helpers/objectHelpers"
+import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import {
-  APIResponse,
+  convertObjectToSelectOptions,
+  enumToSelectOptions,
+} from "@/helpers/objectHelpers"
+import { productFilter } from "@/models/dashboard/product.model"
+import {
   PublishStatus,
   SelectOption,
 } from "@/models/interfaces/global.interfaces"
 import { Products } from "@/models/interfaces/products.interfaces"
+import { useCategoryStore } from "@/stores/categoryStore"
 import { ObjectId } from "mongodb"
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
@@ -32,22 +36,19 @@ export default function HomePage() {
   const limit = 10
   const publishStatus: SelectOption[] = enumToSelectOptions(PublishStatus)
 
+  const { categoryOptions, getCategoryLoading, setCategory } =
+    useCategoryStore()
+
   const formConfig: FilterConfig[] = useMemo(() => {
-    return [
-      {
-        id: "search",
-        label: "Find product name",
-        type: "text",
-        placeholder: "Type product name...",
+    return productFilter({
+      publishStatus,
+      category: categoryOptions,
+      categoryOnChange: (e: React.ChangeEvent<HTMLInputElement>) => {
+        setCategory(e.target.value)
       },
-      {
-        id: "publish",
-        label: "Publish Status",
-        type: "select",
-        options: publishStatus,
-      },
-    ]
-  }, [publishStatus])
+      categoryLoading: getCategoryLoading,
+    })
+  }, [publishStatus, categoryOptions, getCategoryLoading, setCategory])
 
   const initialFilterState = useMemo(() => {
     const initialState: FilterValues = {}
@@ -69,7 +70,7 @@ export default function HomePage() {
     setIsSearch(true)
   }, [initialFilterState])
 
-  const fetchProducs = useCallback(async () => {
+  const fetchProducts = useCallback(async () => {
     setLoading(true)
     setError(null)
     try {
@@ -100,9 +101,9 @@ export default function HomePage() {
 
   useEffect(() => {
     if (!Products || isSearch) {
-      fetchProducs()
+      fetchProducts()
     }
-  }, [Products, isSearch, fetchProducs])
+  }, [Products, isSearch, fetchProducts])
 
   if (loading)
     return (
@@ -122,17 +123,14 @@ export default function HomePage() {
   const handleDelete = async () => {
     if (SelectedProduct) {
       try {
-        const response = await fetch(`/api/products/${SelectedProduct}`, {
-          method: "DELETE",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        })
-
-        const data: APIResponse = await response.json()
+        const { response, data } = await PUSHAPI(
+          "DELETE",
+          `/api/products/${SelectedProduct}`,
+          "",
+        )
 
         if (response.ok && data.success) {
-          fetchProducs()
+          fetchProducts()
         }
       } catch (error: unknown) {
         if (error instanceof Error) {

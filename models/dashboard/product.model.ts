@@ -1,7 +1,16 @@
 import { FilterConfig } from "@/components/table/TableFilters"
 import { SelectOption } from "../interfaces/global.interfaces"
+import { ChangeEventOrValues } from "@/components/form/inputGenerator"
 
-export function productFilter(publishStatus: SelectOption[]): FilterConfig[] {
+type filterOpt = {
+  publishStatus: SelectOption[]
+  category?: SelectOption[]
+  categoryOnChange?: (e: ChangeEventOrValues) => void
+  categoryLoading?: boolean
+  store?: SelectOption[]
+}
+
+export function productFilter(filter: filterOpt): FilterConfig[] {
   return [
     {
       id: "search",
@@ -10,40 +19,51 @@ export function productFilter(publishStatus: SelectOption[]): FilterConfig[] {
       placeholder: "Type product name...",
     },
     {
-      id: "brand",
-      label: "Find brand name",
+      id: "sku",
+      label: "Find SkU",
       type: "text",
-      placeholder: "Type brand name...",
+      placeholder: "Type sku...",
+    },
+    {
+      id: "store",
+      label: "Find by Store",
+      type: "autocomplete",
+      placeholder: "Type store...",
+      options: [],
     },
     {
       id: "category",
       label: "Find by category",
-      type: "text",
-      placeholder: "Type product category...",
+      type: "autocomplete",
+      placeholder: "Select category...",
+      options: filter.category,
+      customEvent: filter.categoryOnChange,
+      isLoading: filter.categoryLoading,
     },
     {
-      id: "store",
-      label: "Find by store",
+      id: "brand",
+      label: "Find by brand",
       type: "text",
-      placeholder: "Type store name...",
+      placeholder: "Type brand...",
     },
     {
       id: "price",
-      label: "Find by price",
-      type: "text",
-      placeholder: "Type product price range...",
+      label: "Find price",
+      type: "price_range",
+      placeholder: "Type price name...",
     },
     {
-      id: "discount",
-      label: "Find by discount",
-      type: "text",
-      placeholder: "Type product discount...",
+      id: "availability",
+      label: "Find by availability",
+      type: "select",
+      placeholder: "Type price name...",
+      options: [],
     },
     {
       id: "publish",
       label: "Publish Status",
       type: "select",
-      options: publishStatus,
+      options: filter.publishStatus,
     },
   ]
 }

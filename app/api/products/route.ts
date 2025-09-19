@@ -213,11 +213,10 @@ async function buildElasticQuery(req) {
     name,
     brand,
     category,
-    is_discount,
     sku,
     status,
-    price_min,
-    price_max,
+    min_price,
+    max_price,
     store_id,
     page,
     limit,
@@ -261,16 +260,6 @@ async function buildElasticQuery(req) {
     })
   }
 
-  if (is_discount) {
-    esQuery.bool.filter.push({
-      range: {
-        "discount.value": {
-          gt: 0,
-        },
-      },
-    })
-  }
-
   if (status) {
     esQuery.bool.filter.push({
       term: { status: status },
@@ -283,8 +272,8 @@ async function buildElasticQuery(req) {
     })
   }
 
-  const priceMin = price_min ?? "0"
-  const priceMax = price_max ?? "99999999"
+  const priceMin = min_price ?? "0"
+  const priceMax = max_price ?? "99999999"
   esQuery.bool.filter.push({
     range: {
       price: {
