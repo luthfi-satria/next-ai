@@ -5,144 +5,115 @@ import {
   ContentProps,
   translateName,
 } from "@/components/AdminContentWrapper"
+import { ChangeEventOrValues } from "@/components/form/inputGenerator"
 import TableContentComponent from "@/components/table/TableContents"
 import { FilterConfig, FilterValues } from "@/components/table/TableFilters"
 import TablePagination from "@/components/table/TablePagination"
-import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
-import {
-  convertObjectToSelectOptions,
-  enumToSelectOptions,
-} from "@/helpers/objectHelpers"
+import { enumToSelectOptions } from "@/helpers/objectHelpers"
 import { productFilter } from "@/models/dashboard/product.model"
 import {
   PublishStatus,
   SelectOption,
 } from "@/models/interfaces/global.interfaces"
-import { Products } from "@/models/interfaces/products.interfaces"
 import { useCategoryStore } from "@/stores/categoryStore"
+import {
+  useProducts,
+  useProductsAction,
+  useProductsError,
+  useProductsFilter,
+  useProductsIsSearch,
+  useProductsLimit,
+  useProductsLoading,
+  useProductsPage,
+  useTotalProducts,
+} from "@/stores/productStore"
 import { ObjectId } from "mongodb"
 import Link from "next/link"
 import { useCallback, useEffect, useMemo, useState } from "react"
 
 export default function HomePage() {
-  const [Products, setProducts] = useState<Products[]>([])
-  const [TotalProducts, setTotalProducts] = useState<number>(0)
-  const [loading, setLoading] = useState(true)
-  const [error, setError] = useState<string | null>(null)
+  const Products = useProducts()
+  const TotalProducts = useTotalProducts()
+  const ErrorResponse = useProductsError()
+  const IsSearch = useProductsIsSearch()
+  const ProductFilter = useProductsFilter()
+  const CurrentPage = useProductsPage()
+  const Limit = useProductsLimit()
+  const Loading = useProductsLoading()
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false)
-  const [isSearch, setIsSearch] = useState<boolean>(true)
-  const [SelectedProduct, setSelectedProduct] = useState<ObjectId>()
-  const [currentPage, setCurrentPage] = useState<number>(1)
-  const limit = 10
   const publishStatus: SelectOption[] = enumToSelectOptions(PublishStatus)
+  const {
+    fetchProducts,
+    setProductFilter,
+    setIsSearching,
+    setSelectedProduct,
+    setCurrentPage,
+    deleteProduct,
+  } = useProductsAction()
 
-  const { categoryOptions, getCategoryLoading, setCategory } =
-    useCategoryStore()
+  const {
+    CategoryOption,
+    CategoryIsLoading,
+    fetchCategories,
+    setCategoryFilter,
+    CategoryFilter,
+  } = useCategoryStore()
+
+  const searchCategory = useCallback(
+    (value: string) => {
+      setCategoryFilter({ ...CategoryFilter, search: value })
+      fetchCategories()
+    },
+    [setCategoryFilter, fetchCategories, CategoryFilter],
+  )
 
   const formConfig: FilterConfig[] = useMemo(() => {
     return productFilter({
       publishStatus,
-      category: categoryOptions,
-      categoryOnChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-        setCategory(e.target.value)
-      },
-      categoryLoading: getCategoryLoading,
+      category: CategoryOption,
+      categoryOnChange: (e: React.ChangeEvent<HTMLInputElement>) =>
+        searchCategory(e.target.value),
+      categoryLoading: CategoryIsLoading,
     })
-  }, [publishStatus, categoryOptions, getCategoryLoading, setCategory])
+  }, [publishStatus, CategoryOption, CategoryIsLoading, searchCategory])
 
-  const initialFilterState = useMemo(() => {
+  const initialFilterState: FilterValues = useMemo(() => {
     const initialState: FilterValues = {}
     formConfig.forEach((filter) => {
       initialState[filter.id] = ""
     })
+    // setProductFilter(initialState)
     return initialState
   }, [formConfig])
 
-  const [currentFilters, setCurrentFilters] =
-    useState<FilterValues>(initialFilterState)
-
-  const handleFilterChange = useCallback((filters: FilterValues) => {
-    setCurrentFilters(filters)
-  }, [])
-
-  const handleResetFilters = useCallback(() => {
-    setCurrentFilters(initialFilterState)
-    setIsSearch(true)
-  }, [initialFilterState])
-
-  const fetchProducts = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const { response, ApiResponse } = await PopulateTable(
-        "/api/products",
-        currentFilters,
-        currentPage,
-        limit,
-      )
-      if (response.ok && ApiResponse.success) {
-        const data = ApiResponse.results.data
-
-        setProducts(data as Products[])
-        setTotalProducts(ApiResponse.results.total)
-      } else {
-        setError(ApiResponse.message || "Failed to fetch products")
-      }
-    } catch (err: unknown) {
-      if (err instanceof Error) {
-        console.log(`Error: `, err.message)
-      }
-      // setError(err.message)
-    } finally {
-      setLoading(false)
-      setIsSearch(false)
+  useEffect(() => {
+    if (!ProductFilter) {
+      setProductFilter(initialFilterState)
+      setIsSearching(true)
     }
-  }, [currentFilters, currentPage, limit])
+  }, [ProductFilter, setProductFilter, initialFilterState, setIsSearching])
 
   useEffect(() => {
-    if (!Products || isSearch) {
+    if (IsSearch) {
       fetchProducts()
     }
-  }, [Products, isSearch, fetchProducts])
+  }, [fetchProducts, IsSearch])
 
-  if (loading)
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <p className="text-xl font-semibold text-gray-700">
-          Loading products...
-        </p>
-      </div>
-    )
-  if (error)
-    return (
-      <div className="flex justify-center items-center h-screen bg-gray-50">
-        <p className="text-xl font-semibold text-red-600">Error: {error}</p>
-      </div>
-    )
+  const handleFilterChange = useCallback(
+    (filters: FilterValues) => {
+      setProductFilter(filters)
+    },
+    [setProductFilter],
+  )
 
-  const handleDelete = async () => {
-    if (SelectedProduct) {
-      try {
-        const { response, data } = await PUSHAPI(
-          "DELETE",
-          `/api/products/${SelectedProduct}`,
-          "",
-        )
+  const handleResetFilters = useCallback(() => {
+    setProductFilter(initialFilterState)
+    setIsSearching(true)
+  }, [initialFilterState, setProductFilter, setIsSearching])
 
-        if (response.ok && data.success) {
-          fetchProducts()
-        }
-      } catch (error: unknown) {
-        if (error instanceof Error) {
-          console.log(`Error: `, error.message)
-          setError(error.message)
-        }
-      } finally {
-        setIsModalOpen(false)
-        setSelectedProduct(null)
-      }
-    }
-    return true
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedProduct(null)
   }
 
   const handleConfirmDelete = (categoryId: ObjectId) => {
@@ -150,19 +121,11 @@ export default function HomePage() {
     setSelectedProduct(categoryId)
   }
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false)
-    setSelectedProduct(null)
-  }
-
   const handlePageChange = (page: number) => {
-    setIsSearch(true)
+    setIsSearching(true)
     setCurrentPage(page)
   }
 
-  const handleSearch = () => {
-    setIsSearch(true)
-  }
   const translateAction = (
     value: ObjectId,
     _rowData: Record<string, unknown>,
@@ -195,8 +158,10 @@ export default function HomePage() {
     addFilter: {
       config: formConfig,
       onFilterChange: handleFilterChange,
-      currentFilters: currentFilters,
-      onSearch: handleSearch,
+      currentFilters: ProductFilter,
+      onSearch: () => {
+        setIsSearching(true)
+      },
       onReset: handleResetFilters,
     },
     modal: {
@@ -204,7 +169,10 @@ export default function HomePage() {
       cancelText: "No",
       isOpen: isModalOpen,
       onClose: handleCloseModal,
-      onConfirm: handleDelete,
+      onConfirm: () => {
+        deleteProduct()
+        setIsModalOpen(false)
+      },
       title: "Remove store",
     },
   }
@@ -218,9 +186,25 @@ export default function HomePage() {
     { name: "Status", columnKey: "status" },
     { name: "Action", columnKey: "_id", translater: translateAction },
   ]
+
   return (
     <AdminContentWrapperComponent props={pageProps}>
-      {/* Tabel products List */}
+      {Loading && (
+        <div className="flex justify-center items-center h-screen bg-gray-50">
+          <p className="text-xl font-semibold text-gray-700">
+            Loading products...
+          </p>
+        </div>
+      )}
+
+      {ErrorResponse && (
+        <div className="flex justify-center items-center h-screen bg-gray-50">
+          <p className="text-xl font-semibold text-red-600">
+            Error: {ErrorResponse}
+          </p>
+        </div>
+      )}
+
       <h2 className="text-2xl sm:text-3xl font-bold text-gray-800 mb-5 mt-8">
         Registered Products
       </h2>
@@ -231,16 +215,16 @@ export default function HomePage() {
       ) : (
         <div className="shadow-md rounded-t-md border border-gray-200">
           <TablePagination
-            currentPage={currentPage}
+            currentPage={CurrentPage}
             totalItems={TotalProducts}
-            itemsPerPage={limit}
+            itemsPerPage={Limit}
             onPageChange={handlePageChange}
           />
           <TableContentComponent column={TableColumn} data={Products} />
           <TablePagination
-            currentPage={currentPage}
+            currentPage={CurrentPage}
             totalItems={TotalProducts}
-            itemsPerPage={limit}
+            itemsPerPage={Limit}
             onPageChange={handlePageChange}
           />
         </div>

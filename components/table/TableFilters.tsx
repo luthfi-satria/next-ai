@@ -79,7 +79,7 @@ const TableFilters: React.FC<TableFiltersProps> = ({
       ...item,
       name: item.id,
       onChange: handleInputChange,
-      value: filterValues[item.id] || "",
+      value: filterValues && filterValues[item.id] ? filterValues[item.id] : "",
     }
   })
 

@@ -1,5 +1,5 @@
 import { SelectOption } from "@/models/interfaces/global.interfaces"
-import React, { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef, ChangeEvent } from "react"
 import { LabelInput } from "./inputLabel"
 import { CheckIcon, ChevronDownIcon, CogIcon } from "@heroicons/react/outline"
 import { InputGeneratorType } from "./inputGenerator"
@@ -50,7 +50,7 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     }
   }, [wrapperRef])
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value)
     setShowSuggestions(true)
     if (customEvent) {

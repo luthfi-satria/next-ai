@@ -1,103 +1,141 @@
 // store/categoryStore.ts
 
 import { create } from "zustand"
-import { PopulateTable } from "@/helpers/apiRequest"
+import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import { convertObjectToSelectOptions } from "@/helpers/objectHelpers"
 import { SelectOption } from "@/models/interfaces/global.interfaces"
 import { Category } from "@/models/interfaces/category.interfaces"
 import { catchError } from "@/helpers/responseHelper"
-
-function debounce<T extends (...args: unknown[]) => unknown>(
-  func: T,
-  delay: number,
-): (...args: Parameters<T>) => void {
-  let timeoutId: NodeJS.Timeout | null = null
-
-  return (...args: Parameters<T>) => {
-    if (timeoutId) {
-      clearTimeout(timeoutId)
-    }
-
-    timeoutId = setTimeout(() => {
-      func(...args)
-    }, delay)
-  }
-}
+import { useDebounce } from "@/hooks/useDebounce"
+import { FilterValues } from "@/components/table/TableFilters"
+import { ObjectId } from "mongodb"
 
 // define state store
 interface CategoryStoreState {
-  category: string
-  categoryOptions: SelectOption[]
-  categoryList: Category[]
-  getCategoryLoading: boolean
-  selectedCategory: Category | null
-  error: string | null
+  SelectedCategory: ObjectId
+  CategoryFilter: FilterValues
+  Categories: Category[]
+  CategoryOption: SelectOption[]
+  TotalCategory: number
+  CategoryIsLoading: boolean
+  CategoryIsSearching: boolean
+  CategoryCurrentPage: number
+  CategoryLimit: number
+  CategoryError: string | null
 }
 
 // action type
 interface CategoryStoreActions {
-  setCategory: (category: string) => void
+  setSelectedCategory: (category: ObjectId) => void
+  setCategoryFilter: (filter: FilterValues) => void
+  setCategoryIsLoading: (status: boolean) => void
+  setCategoryCurrentPage: (number: number) => void
+  setCategoryLimit: (number: number) => void
+  setCategoryIsSearching: (status: boolean) => void
+  fetchCategories: () => void
+  deleteCategory: () => void
 }
 
 // combine the state
 type CombinedCategoryStore = CategoryStoreState & CategoryStoreActions
 
-export const useCategoryStore = create<CombinedCategoryStore>((set) => {
-  const fetchCategories = async (query: string) => {
-    if (query.length < 3) {
-      set({ categoryOptions: [], selectedCategory: null })
-      return
-    }
-
-    set({ getCategoryLoading: true })
-
+export const useCategoryStore = create<CombinedCategoryStore>((set, get) => {
+  const fetchCategories = async () => {
+    const { CategoryFilter, CategoryCurrentPage, CategoryLimit } = get()
+    set({ CategoryIsLoading: true, CategoryError: null })
     try {
-      const { ApiResponse } = await PopulateTable(
+      const { response, ApiResponse } = await PopulateTable(
         "/api/categories",
-        {
-          search: query,
-        },
-        1,
-        10,
+        CategoryFilter,
+        CategoryCurrentPage,
+        CategoryLimit,
       )
 
-      if (ApiResponse.success) {
+      if (response.ok && ApiResponse.success) {
         const data = ApiResponse.results.data
-        const categoryOptions = convertObjectToSelectOptions(data, {
-          labelKey: "name",
+        const storeOption = convertObjectToSelectOptions(data, {
           valueKey: "_id",
+          labelKey: "name",
+          defaultValue: "",
         })
-        set({ categoryOptions, error: null })
+        set({
+          Categories: data as Category[],
+          CategoryOption: storeOption as SelectOption[],
+          TotalCategory: ApiResponse.results.total,
+        })
       } else {
         set({
-          error: ApiResponse.message || "Failed to fetch categories",
-          categoryOptions: [],
+          Categories: [],
+          TotalCategory: 0,
+          CategoryError: ApiResponse.message || "Failed to fetch category",
         })
       }
-    } catch (error: unknown) {
-      const errMsg = catchError(error)
-      set({ categoryOptions: [], error: errMsg })
+    } catch (err: unknown) {
+      const errMsg = catchError(err)
+      set({ Categories: [], TotalCategory: 0, CategoryError: errMsg })
     } finally {
-      set({ getCategoryLoading: false })
+      set({ CategoryIsLoading: false, CategoryIsSearching: false })
     }
   }
 
-  const debouncedFetchCategories = debounce(fetchCategories, 1000)
+  const debouncedFetch = useDebounce(fetchCategories, 1000)
+
+  const deleteCategory = async () => {
+    try {
+      const { SelectedCategory } = get()
+      set({ CategoryIsLoading: true, CategoryError: null })
+      if (SelectedCategory) {
+        const { response, data } = await PUSHAPI(
+          "DELETE",
+          `/api/categories/${SelectedCategory}`,
+          "",
+        )
+
+        if (response.ok && data.success) {
+          debouncedFetch()
+        }
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(`Error: `, error.message)
+        set({ CategoryError: error.message })
+      }
+    } finally {
+      // setIsModalOpen(false)
+      set({
+        CategoryIsLoading: false,
+        CategoryError: null,
+        SelectedCategory: null,
+      })
+    }
+  }
 
   return {
     // Initial state
-    category: "",
-    categoryList: [],
-    categoryOptions: [],
-    getCategoryLoading: false,
-    selectedCategory: null,
-    error: null,
+    SelectedCategory: null,
+    CategoryFilter: null,
+    Categories: [],
+    CategoryOption: [],
+    TotalCategory: 0,
+    CategoryIsLoading: false,
+    CategoryIsSearching: false,
+    CategoryCurrentPage: 1,
+    CategoryLimit: 10,
+    CategoryError: null,
 
     // Action to changed the state and trigger searching
-    setCategory: (value: string) => {
-      set({ category: value })
-      debouncedFetchCategories(value)
-    },
-    fetchCategories: debouncedFetchCategories,
+    setSelectedCategory: (categoryId: ObjectId) =>
+      set({ SelectedCategory: categoryId }),
+    setCategoryFilter: (filter: FilterValues) =>
+      set({ CategoryFilter: filter }),
+    setCategoryIsLoading: (status: boolean) =>
+      set({ CategoryIsLoading: status }),
+    setCategoryCurrentPage: (page: number) =>
+      set({ CategoryCurrentPage: page }),
+    setCategoryLimit: (limit: number) => set({ CategoryLimit: limit }),
+    setCategoryIsSearching: (isSearch: boolean) =>
+      set({ CategoryIsSearching: isSearch }),
+    fetchCategories: debouncedFetch,
+    deleteCategory: deleteCategory,
   }
 })

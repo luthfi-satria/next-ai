@@ -1,81 +1,154 @@
 // store/productStore.ts
 
 import { create } from "zustand"
-import { PopulateTable } from "@/helpers/apiRequest"
-import { convertObjectToSelectOptions } from "@/helpers/objectHelpers"
-import { SelectOption } from "@/models/interfaces/global.interfaces"
-import { Category } from "@/models/interfaces/category.interfaces"
+import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import { catchError } from "@/helpers/responseHelper"
-import { FilterConfig, FilterValues } from "@/components/table/TableFilters"
+import { FilterValues } from "@/components/table/TableFilters"
 import { Products } from "@/models/interfaces/products.interfaces"
-import { productFilter } from "@/models/dashboard/product.model"
-
-// define state store
-interface ProductStoreState {
-  products: Products[]
-  productFilter: FilterValues
-  totalProducts: number
-  isLoading: boolean
-  isSearching: boolean
-  formConfig: FilterConfig[]
-  currentPage: number
-  limit: number
-  error: string | null
-}
+import { ObjectId } from "mongodb"
 
 // action type
 interface ProductActionState {
-  setProduct: (category: string) => void
+  setSelectedProduct: (productId: ObjectId) => void
   setProductFilter: (filter: FilterValues) => void
   setIsLoading: (status: boolean) => void
+  setCurrentPage: (page: number) => void
+  setLimit: (page: number) => void
+  setIsSearching: (status: boolean) => void
+  fetchProducts: () => void
+  deleteProduct: () => void
 }
 
-// combine the state
-type CombinedState = ProductStoreState & ProductActionState
+// define state store
+interface ProductStoreState {
+  SelectedProduct: ObjectId
+  Products: Products[]
+  ProductFilter: FilterValues
+  TotalProducts: number
+  IsLoading: boolean
+  IsSearching: boolean
+  CurrentPage: number
+  Limit: number
+  Error: string | null
+  Actions: ProductActionState
+}
 
-export const useProductStore = create<CombinedState>((set, get) => {
+const useProductStore = create<ProductStoreState>((set, get) => {
   const fetchProducts = async () => {
-    set({ isLoading: true, error: null })
+    const { ProductFilter, CurrentPage, Limit } = get()
+    set({ IsLoading: true, Error: null })
     try {
       const { response, ApiResponse } = await PopulateTable(
         "/api/products",
-        get().productFilter,
-        get().currentPage,
-        get().limit,
+        ProductFilter,
+        CurrentPage,
+        Limit,
       )
+
       if (response.ok && ApiResponse.success) {
         const data = ApiResponse.results.data
         set({
-          products: data as Products[],
-          totalProducts: ApiResponse.results.total,
+          Products: data as Products[],
+          TotalProducts: ApiResponse.results.total,
         })
       } else {
         set({
-          products: [],
-          totalProducts: 0,
-          error: ApiResponse.message || "Failed to fetch products",
+          Products: [],
+          TotalProducts: 0,
+          Error: ApiResponse.message || "Failed to fetch products",
         })
       }
     } catch (err: unknown) {
       const errMsg = catchError(err)
-      set({ products: [], totalProducts: 0, error: errMsg })
+      set({ Products: [], TotalProducts: 0, Error: errMsg })
     } finally {
-      set({ isLoading: true, isSearching: false })
+      set({ IsLoading: false, IsSearching: false })
+    }
+  }
+
+  const deleteProduct = async () => {
+    try {
+      const { SelectedProduct } = get()
+      set({ IsLoading: true, Error: null })
+      if (SelectedProduct) {
+        const { response, data } = await PUSHAPI(
+          "DELETE",
+          `/api/products/${SelectedProduct}`,
+          "",
+        )
+
+        if (response.ok && data.success) {
+          fetchProducts()
+        }
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        console.log(`Error: `, error.message)
+        set({ Error: error.message })
+      }
+    } finally {
+      // setIsModalOpen(false)
+      set({ IsLoading: false, Error: null, SelectedProduct: null })
     }
   }
 
   return {
     // Initial state
-    products: [],
-    productFilter: [],
-    totalProducts: 0,
-    isLoading: true,
-    isSearching: true,
-    formConfig: [],
-    currentPage: 1,
-    limit: 10,
-    error: null,
-
-    // Action to changed the state
+    SelectedProduct: null,
+    Products: [],
+    ProductFilter: null,
+    TotalProducts: 0,
+    IsLoading: false,
+    IsSearching: false,
+    CurrentPage: 1,
+    Limit: 10,
+    Error: null,
+    Actions: {
+      // Action to changed the state
+      setSelectedProduct: (productId: ObjectId) =>
+        set({ SelectedProduct: productId }),
+      setProductFilter: (filter: FilterValues) => {
+        set({ ProductFilter: filter })
+      },
+      setIsLoading: (status: boolean) => {
+        set({ IsLoading: status })
+      },
+      setIsSearching: (status: boolean) => {
+        set({ IsSearching: status })
+      },
+      setCurrentPage: (page: number) => {
+        set({ CurrentPage: page })
+      },
+      setLimit: (limit: number) => {
+        set({ Limit: limit })
+      },
+      fetchProducts: fetchProducts,
+      deleteProduct: deleteProduct,
+    },
   }
 })
+
+const useSelectedProduct = () =>
+  useProductStore((state) => state.SelectedProduct)
+const useProductsIsSearch = () => useProductStore((state) => state.IsSearching)
+const useProducts = () => useProductStore((state) => state.Products)
+const useProductsFilter = () => useProductStore((state) => state.ProductFilter)
+const useProductsPage = () => useProductStore((state) => state.CurrentPage)
+const useProductsLimit = () => useProductStore((state) => state.Limit)
+const useTotalProducts = () => useProductStore((state) => state.TotalProducts)
+const useProductsError = () => useProductStore((state) => state.Error)
+const useProductsAction = () => useProductStore((state) => state.Actions)
+const useProductsLoading = () => useProductStore((state) => state.IsLoading)
+
+export {
+  useSelectedProduct,
+  useProducts,
+  useTotalProducts,
+  useProductsError,
+  useProductsAction,
+  useProductsIsSearch,
+  useProductsFilter,
+  useProductsPage,
+  useProductsLimit,
+  useProductsLoading,
+}
