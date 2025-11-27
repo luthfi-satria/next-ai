@@ -25,24 +25,22 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
   idPrefix,
   className,
 }) => {
-  const prefix = idPrefix || label.toLowerCase().replace(/\s/g, "-")
+  const defaultLabel = label ? label.toLowerCase().replace(/\s/g, "-") : ""
+  const prefix = idPrefix || defaultLabel
   const startDateId = `${prefix}-start-date`
   const endDateId = `${prefix}-end-date`
 
   return (
     <div className="flex flex-col">
-      <LabelInput
-        id={idPrefix}
-        label={label}
-        className={className || FORM_LABEL}
-      />
+      {label && (
+        <LabelInput
+          id={idPrefix}
+          label={label}
+          className={className || FORM_LABEL}
+        />
+      )}
       <div className="flex space-x-4">
         <div className="flex-1">
-          <LabelInput
-            id={startDateId}
-            label="Start Date"
-            className={className || FORM_LABEL}
-          />
           <DateInput
             label="Start Date"
             onChange={onStartDateChange}
@@ -53,11 +51,6 @@ const DateRangeInput: React.FC<DateRangeInputProps> = ({
         </div>
         <div className="flex items-center text-gray-500">to</div>
         <div className="flex-1">
-          <LabelInput
-            id={endDateId}
-            label="End Date"
-            className={className || FORM_LABEL}
-          />
           <DateInput
             label="End Date"
             onChange={onEndDateChange}

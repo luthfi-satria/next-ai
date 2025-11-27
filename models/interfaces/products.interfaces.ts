@@ -12,7 +12,7 @@ export interface Products extends MongoDocument {
   category: string
   storeUUId: string
   images: string[]
-  tags: string[]
+  tags: string
   price: number
   currency: Currency
   discount: Discount[]
@@ -44,21 +44,29 @@ export interface searchProduct {
 export interface Brands {
   name: string
   logoUrl?: string
+  logoFile?: File | null
 }
 
 export interface Discount {
-  type: string
-  value: number
-  start: Date
-  end: Date
+  type: DiscountType
+  value: string
+  start?: string
+  end?: string
+}
+
+export enum DiscountType {
+  PERCENTAGE = "PERCENTAGE",
+  CASHBACK = "CASHBACK",
+  DELIVERY = "DELIVERY",
 }
 
 export interface ProductVariants {
   sku: string
   attributes: ProductVariantAttributes[]
-  price: number
-  stockQty: number
+  price: string
+  stockQty: string
   images: string[]
+  imagesFile?: File[] | null
 }
 
 export interface ProductVariantAttributes {
@@ -87,7 +95,8 @@ export interface ProductInfo {
   category: string
   storeUUId: string
   images?: string[]
-  tags: string[]
+  imagesFile?: File[] | null
+  tags: string
   price: number
   currency: Currency
   discount?: Discount[]
@@ -108,11 +117,12 @@ export const initProduct: ProductInfo = {
   brand: <Brands>{
     name: "",
     logoUrl: "",
+    logoFile: null,
   },
   category: "",
   storeUUId: "",
   images: [],
-  tags: [],
+  tags: "",
   price: 0,
   currency: Currency.RUPIAH,
   discount: <Discount[]>[],
@@ -123,4 +133,17 @@ export const initProduct: ProductInfo = {
   status: PublishStatus.PUBLISHED,
   weight: 1,
   variants: <ProductVariants[]>[],
+}
+
+export const initVariant: ProductVariants = {
+  sku: "",
+  price: "1",
+  stockQty: "1",
+  images: [],
+  attributes: [],
+}
+
+export const initVariantAttributes: ProductVariantAttributes = {
+  name: "",
+  value: "",
 }

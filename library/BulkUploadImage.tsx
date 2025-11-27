@@ -86,3 +86,41 @@ export async function bulkUploadUnlinkImage(
     return false
   }
 }
+
+export async function singleUploadImage(
+  file: File,
+  uploadDir: string,
+): Promise<string | bulkUploadImage> {
+  const targetDir = join(process.cwd(), DEFAULT_UPLOAD_DIR, uploadDir)
+
+  try {
+    await stat(targetDir)
+  } catch (error: unknown) {
+    if ((error as { code: string }).code === "ENOENT") {
+      await mkdir(targetDir, { recursive: true })
+    } else {
+      console.error("Error creating upload directory", error)
+      return "Failed to create upload directory"
+    }
+  }
+
+  if (file instanceof File && file.size > 0) {
+    const fileBytes = await file.arrayBuffer()
+    const buffer = Buffer.from(fileBytes)
+    const uniqueSuffix = `${uuidv4()}-${file.name.replace(/\.[^/.]+$/, "")}`
+    const fileExtension = mime.getExtension(file.type)
+    const filename = `${uniqueSuffix}.${fileExtension}`
+
+    const filePath = join(targetDir, filename)
+
+    await writeFile(filePath, buffer)
+    const uploadedFile: bulkUploadImage = {
+      filename: filename,
+      name: file.name,
+      type: file.type,
+      url: `uploads/${uploadDir}/${filename}`,
+    }
+    return uploadedFile
+  }
+  return "Failed to upload image"
+}

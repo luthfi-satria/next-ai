@@ -5,10 +5,10 @@ import {
   ContentProps,
   translateName,
 } from "@/components/AdminContentWrapper"
-import { ChangeEventOrValues } from "@/components/form/inputGenerator"
 import TableContentComponent from "@/components/table/TableContents"
 import { FilterConfig, FilterValues } from "@/components/table/TableFilters"
 import TablePagination from "@/components/table/TablePagination"
+import { formatCurrency } from "@/helpers/currency"
 import { enumToSelectOptions } from "@/helpers/objectHelpers"
 import { productFilter } from "@/models/dashboard/product.model"
 import {
@@ -180,8 +180,8 @@ export default function HomePage() {
   const TableColumn = [
     { name: "Name", columnKey: "name", translater: translateName },
     { name: "SKU", columnKey: "sku" },
-    { name: "Category", columnKey: "category" },
-    { name: "Price", columnKey: "price" },
+    { name: "Category", columnKey: "categoryName" },
+    { name: "Price", columnKey: "price", translater: (value: string, _: Record<string, unknown>) => formatCurrency(parseFloat(value))},
     { name: "Availability", columnKey: "availability" },
     { name: "Status", columnKey: "status" },
     { name: "Action", columnKey: "_id", translater: translateAction },

@@ -10,6 +10,8 @@ import TextAreaInput from "./inputTextarea"
 import AutocompleteInput from "./inputAutocomplete"
 import PriceRangeInput from "./inputPriceRange"
 import RadioInput from "./inputRadio"
+import CurrencyInput from "./inputCurrency"
+import NumberInput from "./inputNumber"
 
 export type ChangeEventOrValues =
   | React.ChangeEvent<
@@ -29,6 +31,7 @@ export interface InputGeneratorType {
   options?: SelectOption[] | RadioOption[] | { [key: string]: string }
   className?: string
   checked?: boolean
+  isLoading?: boolean
 }
 
 export default function InputGenerator({
@@ -41,7 +44,7 @@ export default function InputGenerator({
   fieldsError?: string[]
 }) {
   const generateField = (obj: InputGeneratorType, key: number) => {
-    if (obj.type == "text" || obj.type == "password" || obj.type == "number") {
+    if (obj.type == "text" || obj.type == "password") {
       return (
         <TextInput
           id={obj.id || obj.name}
@@ -51,6 +54,25 @@ export default function InputGenerator({
           name={obj.name}
           onChange={obj.onChange}
           value={obj.value as string}
+          placeholder={obj.placeholder}
+          className={
+            fieldsError && fieldsError.includes(obj.name)
+              ? "bg-red-300  border-red-500"
+              : ""
+          }
+        />
+      )
+    }
+
+    if (obj.type == "number") {
+      return (
+        <NumberInput
+          key={key}
+          id={obj.id || obj.name}
+          label={obj.label || obj.name}
+          name={obj.name}
+          onChange={obj.onChange}
+          value={obj.value as string | number}
           placeholder={obj.placeholder}
           className={
             fieldsError && fieldsError.includes(obj.name)
@@ -171,6 +193,7 @@ export default function InputGenerator({
               ? "bg-red-300  border-red-500"
               : ""
           }
+          isLoading={obj.isLoading || false}
         />
       )
     }
@@ -184,6 +207,25 @@ export default function InputGenerator({
           name={obj.name}
           options={obj.options as { [key: string]: string }}
           onChange={obj.onChange}
+          className={
+            fieldsError && fieldsError.includes(obj.name)
+              ? "bg-red-300  border-red-500"
+              : ""
+          }
+        />
+      )
+    }
+
+    if (obj.type == "currency") {
+      return (
+        <CurrencyInput
+          key={key}
+          id={obj.id || obj.name}
+          label={obj.label || obj.name}
+          name={obj.name}
+          onChange={obj.onChange}
+          value={obj.value as string | number}
+          placeholder={obj.placeholder}
           className={
             fieldsError && fieldsError.includes(obj.name)
               ? "bg-red-300  border-red-500"

@@ -4,8 +4,16 @@ import { create } from "zustand"
 import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import { catchError } from "@/helpers/responseHelper"
 import { FilterValues } from "@/components/table/TableFilters"
-import { Products } from "@/models/interfaces/products.interfaces"
+import {
+  initProduct,
+  initVariant,
+  initVariantAttributes,
+  ProductInfo,
+  Products,
+  ProductVariants,
+} from "@/models/interfaces/products.interfaces"
 import { ObjectId } from "mongodb"
+import { Dispatch, SetStateAction } from "react"
 
 // action type
 interface ProductActionState {
@@ -15,8 +23,28 @@ interface ProductActionState {
   setCurrentPage: (page: number) => void
   setLimit: (page: number) => void
   setIsSearching: (status: boolean) => void
+  setError: (error: string) => void
+  setResponseMessage: (message: string) => void
   fetchProducts: () => void
   deleteProduct: () => void
+  setNewProduct: (product: ProductInfo) => void
+  setNewVariantField: (name: string, value: string | number | boolean) => void
+  addNewAttribute: () => void
+  removeNewAttribute: (keyToRemove: number) => void
+  setNewAttributeField: (
+    keyToUpdate: number,
+    name: string,
+    value: string,
+  ) => void
+  saveNewVariantToProduct: (
+    product: ProductInfo,
+    setProduct: Dispatch<SetStateAction<ProductInfo>>,
+  ) => void
+}
+
+interface AddNewProductState {
+  newProduct: ProductInfo
+  newVariants: ProductVariants
 }
 
 // define state store
@@ -30,7 +58,9 @@ interface ProductStoreState {
   CurrentPage: number
   Limit: number
   Error: string | null
+  ResponseMessage: string | null
   Actions: ProductActionState
+  AddNewProduct: AddNewProductState
 }
 
 const useProductStore = create<ProductStoreState>((set, get) => {
@@ -92,6 +122,105 @@ const useProductStore = create<ProductStoreState>((set, get) => {
     }
   }
 
+  const setNewProduct = async () => {}
+  const setNewVariantField = (
+    name: string,
+    value: string | number | boolean,
+  ) => {
+    set((state) => ({
+      AddNewProduct: {
+        ...state.AddNewProduct,
+        newVariants: {
+          ...state.AddNewProduct.newVariants,
+          [name]: value,
+        },
+      },
+    }))
+  }
+  const addNewAttribute = () => {
+    set((state) => {
+      const currentAttributes = state.AddNewProduct.newVariants.attributes || []
+      const newAttributes = [...currentAttributes, initVariantAttributes]
+      return {
+        AddNewProduct: {
+          ...state.AddNewProduct,
+          newVariants: {
+            ...state.AddNewProduct.newVariants,
+            attributes: newAttributes,
+          },
+        },
+      }
+    })
+  }
+  const removeNewAttribute = (keyToRemove: number) => {
+    set((state) => {
+      const updatedAttributes =
+        state.AddNewProduct.newVariants.attributes.filter(
+          (_, index) => index !== keyToRemove,
+        )
+      return {
+        AddNewProduct: {
+          ...state.AddNewProduct,
+          newVariants: {
+            ...state.AddNewProduct.newVariants,
+            attributes: updatedAttributes,
+          },
+        },
+      }
+    })
+  }
+  const setNewAttributeField = (
+    keyToUpdate: number,
+    name: string,
+    value: string,
+  ) => {
+    set((state) => {
+      const updatedAttributes = state.AddNewProduct.newVariants.attributes.map(
+        (attribute, index) => {
+          if (index === keyToUpdate) {
+            return {
+              ...attribute,
+              [name]: value,
+            }
+          }
+          return attribute
+        },
+      )
+      return {
+        AddNewProduct: {
+          ...state.AddNewProduct,
+          newVariants: {
+            ...state.AddNewProduct.newVariants,
+            attributes: updatedAttributes,
+          },
+        },
+      }
+    })
+  }
+  const saveNewVariantToProduct = (
+    product: ProductInfo,
+    setProduct: Dispatch<SetStateAction<ProductInfo>>,
+  ) => {
+    const newVariant = get().AddNewProduct.newVariants
+
+    setProduct((prevProduct) => {
+      const updatedProductVariants = [...prevProduct.variants, newVariant]
+      console.log("Product Updated via Zustand Action:", updatedProductVariants)
+      return {
+        ...prevProduct,
+        variants: updatedProductVariants,
+      }
+    })
+
+    // Reset state sementara di Zustand
+    set((state) => ({
+      AddNewProduct: {
+        ...state.AddNewProduct,
+        newVariants: initVariant, // Reset ke varian kosong awal
+      },
+    }))
+  }
+
   return {
     // Initial state
     SelectedProduct: null,
@@ -103,6 +232,7 @@ const useProductStore = create<ProductStoreState>((set, get) => {
     CurrentPage: 1,
     Limit: 10,
     Error: null,
+    ResponseMessage: null,
     Actions: {
       // Action to changed the state
       setSelectedProduct: (productId: ObjectId) =>
@@ -122,8 +252,24 @@ const useProductStore = create<ProductStoreState>((set, get) => {
       setLimit: (limit: number) => {
         set({ Limit: limit })
       },
+      setError: (error: string) => {
+        set({ Error: error })
+      },
+      setResponseMessage: (msg: string) => {
+        set({ ResponseMessage: msg })
+      },
       fetchProducts: fetchProducts,
       deleteProduct: deleteProduct,
+      setNewProduct: setNewProduct,
+      setNewVariantField: setNewVariantField,
+      addNewAttribute: addNewAttribute,
+      removeNewAttribute: removeNewAttribute,
+      setNewAttributeField: setNewAttributeField,
+      saveNewVariantToProduct: saveNewVariantToProduct,
+    },
+    AddNewProduct: {
+      newProduct: initProduct,
+      newVariants: initVariant,
     },
   }
 })
@@ -139,6 +285,8 @@ const useTotalProducts = () => useProductStore((state) => state.TotalProducts)
 const useProductsError = () => useProductStore((state) => state.Error)
 const useProductsAction = () => useProductStore((state) => state.Actions)
 const useProductsLoading = () => useProductStore((state) => state.IsLoading)
+const useNewVariants = () =>
+  useProductStore((state) => state.AddNewProduct.newVariants)
 
 export {
   useSelectedProduct,
@@ -151,4 +299,5 @@ export {
   useProductsPage,
   useProductsLimit,
   useProductsLoading,
+  useNewVariants,
 }

@@ -24,7 +24,7 @@ const SelectInput: React.FC<SelectInputProps> = ({
 }) => {
   const selectId = id || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <LabelInput id={selectId} label={label} />
       <div className="relative">
         <select

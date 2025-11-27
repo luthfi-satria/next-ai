@@ -1,9 +1,9 @@
-export const FORM_BASE_CLASSNAME = `py-2 px-2 block w-full border border-gray-400 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none dark:bg-neutral-900 dark:border-neutral-700 dark:text-neutral-400 dark:placeholder-neutral-500 dark:focus:ring-neutral-600`
+export const FORM_BASE_CLASSNAME = `py-2 px-2 block w-full border border-gray-400 rounded-lg sm:text-sm focus:border-blue-500 focus:ring-blue-500 disabled:opacity-50 disabled:pointer-events-none`
 
 // --- Enhanced FORM_SELECT_CLASSNAME ---
 export const FORM_SELECT_CLASSNAME = `${FORM_BASE_CLASSNAME} pe-9`
 
-export const FORM_LABEL = `block text-sm font-medium mb-2 dark:text-white capitalize`
+export const FORM_LABEL = `block text-sm font-medium mb-2 capitalize`
 
 export const BUTTON_GRADIENT_DEFAULT = `flex items-center justify-center py-2.5 px-6 bg-linear-to-r  font-semibold rounded-lg shadow-md focus:outline-hidden focus:ring-1 focus:ring-offset-2 transition duration-250 ease-in-out disabled:opacity-60 cursor-pointer disabled:cursor-not-allowed`
 

@@ -19,7 +19,7 @@ const TextInput: React.FC<TextInputProps> = ({
 }) => {
   const inputId = id || label.toLowerCase().replace(/\s/g, "-")
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-col w-full">
       <LabelInput id={inputId} label={label} />
       <input
         type={type}
@@ -28,6 +28,7 @@ const TextInput: React.FC<TextInputProps> = ({
         value={value}
         onChange={(e) => onChange(e)}
         placeholder={placeholder}
+        autoComplete="false"
         className={`${FORM_BASE_CLASSNAME}  ${className}`}
       />
     </div>

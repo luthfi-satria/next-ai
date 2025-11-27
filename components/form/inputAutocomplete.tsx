@@ -7,7 +7,6 @@ import { InputGeneratorType } from "./inputGenerator"
 interface AutocompleteInputProps extends InputGeneratorType {
   className?: string
   options: SelectOption[]
-  isLoading?: boolean
 }
 
 const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
@@ -27,10 +26,10 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   )
   const [suggestions, setSuggestions] = useState(options)
   const [showSuggestions, setShowSuggestions] = useState(false)
+  const [showDelayedMessage, setShowDelayedMessage] = useState(false)
   const wrapperRef = useRef(null)
 
   useEffect(() => {
-    // Filter data based on inputValue
     const filtered = options.filter((item) => {
       return item.label.toLowerCase().includes(inputValue?.toLowerCase())
     })
@@ -38,7 +37,26 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   }, [inputValue, options])
 
   useEffect(() => {
-    // Handle clicks outside the component to close suggestions
+    let timer
+
+    const shouldShowDelayed =
+      !isLoading && suggestions.length === 0 && inputValue.length > 0
+
+    if (shouldShowDelayed) {
+      timer = setTimeout(() => {
+        setShowDelayedMessage(true)
+      }, 500)
+    } else {
+      clearTimeout(timer)
+      setShowDelayedMessage(false)
+    }
+
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [isLoading, suggestions.length, inputValue.length])
+
+  useEffect(() => {
     function handleClickOutside(event) {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
         setShowSuggestions(false)
@@ -101,14 +119,21 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           ))}
         </ul>
       )}
+      {isLoading && showSuggestions && (
+        <div className="absolute z-10 w-full text-gray-400 bg-white border p-2 border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+          <div className="flex flex-row gap-2 items-center w-full text-sm">
+            <CogIcon className="w-6 animate-spin" />
+            Fetch options, please wait...
+          </div>
+        </div>
+      )}
       {!isLoading &&
-        suggestions.length == 0 &&
-        inputValue.length > 0 &&
-        inputValue.length < 4 && (
-          <div className="absolute z-10 w-full text-gray-400 bg-white border p-2 border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
-            <div className="flex flex-row gap-2 align-middle w-full text-sm">
-              <CogIcon className="w-6 animate-spin" />
-              Fetch options, please wait...
+        showSuggestions &&
+        suggestions.length === 0 &&
+        inputValue.length > 0 && (
+          <div className="absolute z-10 w-full text-gray-700 bg-white border p-2 border-gray-300 rounded-md mt-1 shadow-lg max-h-60 overflow-y-auto">
+            <div className="flex flex-row gap-2 items-center w-full text-sm font-medium">
+              Data is not available.
             </div>
           </div>
         )}

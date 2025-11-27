@@ -19,3 +19,26 @@ export const formatDate = (isoString: string): string => {
   }
   return isoString
 }
+export const addDays = (dateObj: Date, days: number) => {
+  const newDate = new Date(dateObj.getTime())
+
+  const currentDay = newDate.getDate()
+
+  newDate.setDate(currentDay + days)
+
+  return newDate
+}
+
+export const formatDateToYYYYMMDD = (dateObj: Date) => {
+  const year = dateObj.getFullYear()
+
+  const month = dateObj.getMonth() + 1
+
+  const day = dateObj.getDate()
+
+  const padToTwoDigits = (num) => {
+    return num.toString().padStart(2, "0")
+  }
+
+  return `${year}-${padToTwoDigits(month)}-${padToTwoDigits(day)}`
+}

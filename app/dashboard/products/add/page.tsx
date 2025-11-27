@@ -1,34 +1,54 @@
 "use client"
+import { Accordion, AccordionItem } from "@/components/accordion/accordion"
 import InputGenerator, {
   ChangeEventOrValues,
 } from "@/components/form/inputGenerator"
+import AddProductBrand from "@/components/products/AddProductBrand"
+import AddProductDiscount from "@/components/products/AddProductDiscount"
+import AddProductImages from "@/components/products/AddProductImages"
+import AddProductVariants from "@/components/products/AddProductVariants"
+import { BUTTON_SUBMIT } from "@/constants/formStyleConstant"
+import { PUSHAPI } from "@/helpers/apiRequest"
 import { formEventHandler } from "@/helpers/formHandler"
+import { addProduct, addProductType } from "@/models/dashboard/product.model"
 import { SelectOption } from "@/models/interfaces/global.interfaces"
-import { ProductInfo } from "@/models/interfaces/products.interfaces"
+import {
+  initProduct,
+  ProductInfo,
+} from "@/models/interfaces/products.interfaces"
 import { useCategoryStore } from "@/stores/categoryStore"
-import { useProductsError } from "@/stores/productStore"
+import { useProductsAction, useProductsError } from "@/stores/productStore"
 import {
   useStoreActions,
   useStoreFilter,
+  useStoreIsLoading,
   useStoreOptions,
 } from "@/stores/storesStore"
 import Link from "next/link"
 import { ChangeEvent, useCallback, useState } from "react"
 
 export default function AddProductPage() {
-  const product: ProductInfo | null = null
+  // const product: ProductInfo | null = null
   /** STATE FOR STORE */
   const StoreFilter = useStoreFilter()
+  const StoreLoading = useStoreIsLoading()
   const StoresOptions: SelectOption[] = useStoreOptions()
+  const [product, setProduct] = useState<ProductInfo>(initProduct)
   const { setStoreFilter, fetchStores } = useStoreActions()
 
   /** STATE FOR CATEGORY */
-  const { CategoryFilter, CategoryOption, setCategoryFilter, fetchCategories } =
-    useCategoryStore()
+  const {
+    CategoryFilter,
+    CategoryOption,
+    CategoryIsLoading,
+    setCategoryFilter,
+    fetchCategories,
+  } = useCategoryStore()
 
   /** STATE FOR PRODUCTS*/
-  const Error = useProductsError()
+  const useError = useProductsError()
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { setError, setResponseMessage } = useProductsAction()
 
   /**
    * AUTOCOMPLETE FUNCTION
@@ -55,23 +75,87 @@ export default function AddProductPage() {
   /** END OF AUTOCOMPLETE FUNCTION */
 
   const handleStoreOptionsChange = (e: ChangeEventOrValues) => {
-    const { name, value } = formEventHandler(e)
-    console.log("handle change")
+    const { value } = formEventHandler(e)
+    setProduct({ ...product, storeUUId: value as string })
+  }
+
+  const handleCategoryOptionsChange = (e: ChangeEventOrValues) => {
+    const { value } = formEventHandler(e)
+    setProduct({ ...product, category: value as string })
   }
 
   const handleInputChange = (e: ChangeEventOrValues) => {
-    console.log(`handle input change`, e)
+    const { name, value } = formEventHandler(e)
+    setProduct({ ...product, [name]: value })
   }
 
   const handleAdd = async (e: React.FormEvent) => {
-    console.log(`handle add`, e)
+    if (product) {
+      e.preventDefault()
+      setIsSubmitting(true)
+      setError(null)
+      try {
+        const fileFields = new FormData()
+        const payload = product
+        if (product.brand.logoFile) {
+          fileFields.append(
+            "brandFiles",
+            product.brand.logoFile,
+            product.brand.logoFile.name,
+          )
+          delete payload.brand.logoFile
+        }
+
+        if (product.variants && product.variants?.length > 0) {
+          product.variants.map((items, key) => {
+            if (items.imagesFile?.length > 0) {
+              items.imagesFile.map((img) => {
+                fileFields.append(`variantImgFiles[]`, img, img.name)
+              })
+            }
+            delete payload.variants[key].imagesFile
+          })
+        }
+
+        if (product.imagesFile && product.imagesFile?.length > 0) {
+          product.imagesFile.map((items) => {
+            fileFields.append("imagesFile[]", items, items.name)
+          })
+          delete payload.imagesFile
+        }
+
+        fileFields.append("payload", JSON.stringify(payload))
+
+        const { response, data } = await PUSHAPI<ProductInfo>(
+          "POST",
+          "/api/products",
+          fileFields,
+        )
+        if (response.ok && data.success) {
+          setProduct({ ...product, ...initProduct }) // Reset form
+          setResponseMessage(data.message)
+        } else {
+          setError(data.message || "Failed to add product")
+        }
+      } catch (err: unknown) {
+        if (err instanceof Error) {
+          console.log(`Error: `, err.message)
+          setError(err.message)
+        }
+      } finally {
+        setTimeout(() => {
+          setIsSubmitting(false)
+          setResponseMessage("")
+        }, 5000)
+      }
+    }
   }
 
   const handleResponse = () => {
     let message = ""
     let style = ""
-    if (Error) {
-      message = `Error: ${Error}`
+    if (useError) {
+      message = `Error: ${useError}`
       style = "text-red-600 bg-red-300 border border-red-500"
     } else {
       message = "success"
@@ -85,64 +169,53 @@ export default function AddProductPage() {
     )
   }
 
-  const inputForm = [
-    {
-      id: "store",
-      type: "autocomplete",
-      name: "store",
-      label: "store",
-      value: product?.storeUUId || "",
+  const formConf: addProductType = {
+    data: product,
+    store: {
       options: StoresOptions,
-      onChange: handleStoreOptionsChange,
-      customEvent: searchStore,
-      required: true,
+      handleOptionChange: handleStoreOptionsChange,
+      handleSearch: searchStore,
+      loadingStatus: StoreLoading,
     },
-    {
-      type: "text",
-      name: "name",
-      placeholder: "e.g., Awesome Kid Shoes",
-      value: product?.name || "",
-      onChange: handleInputChange,
-      required: true,
-    },
-    {
-      type: "text",
-      name: "sku",
-      placeholder: "KS202503-23-DS-00324",
-      value: product?.sku || "",
-      onChange: handleInputChange,
-      required: true,
-    },
-    {
-      id: "category",
-      type: "autocomplete",
-      label: "Category",
-      name: "category",
-      value: product?.category,
+    category: {
       options: CategoryOption,
-      onChange: handleInputChange,
-      customEvent: searchCategory,
-      required: true,
+      handleOptionChange: handleCategoryOptionsChange,
+      handleSearch: searchCategory,
+      loadingStatus: CategoryIsLoading,
+    },
+    genericHandleChange: handleInputChange,
+  }
+
+  const buildForm = addProduct(formConf)
+
+  const accordionData: AccordionItem[] = [
+    {
+      id: 1,
+      title: "Basic product information",
+      content: <InputGenerator props={buildForm} />,
     },
     {
-      type: "textarea",
-      name: "description",
-      placeholder: "e.g., Product Description",
-      value: product?.description || "",
-      onChange: handleInputChange,
-      required: true,
+      id: 2,
+      title: "Product Brand",
+      content: <AddProductBrand setProduct={setProduct} product={product} />,
     },
-    /*
     {
-      type: "text",
-      name: "tags",
-      placeholder: "Product tags",
-      value: product?.tags || "",
-      onChange: handleInputChange,
-      required: true,
+      id: 3,
+      title: "Product Discount",
+      content: <AddProductDiscount product={product} setProduct={setProduct} />,
     },
-    */
+    {
+      id: 4,
+      title: "Product images",
+      content: <AddProductImages product={product} setProduct={setProduct} />,
+    },
+    {
+      id: 5,
+      title: "Product variants",
+      content: <AddProductVariants product={product} setProduct={setProduct} />,
+    },
   ]
+
   return (
     <>
       {/* Add Product Form */}
@@ -159,8 +232,21 @@ export default function AddProductPage() {
           </h2>
         </div>
         {isSubmitting && handleResponse()}
-        <form onSubmit={handleAdd} className="space-y-4 w-3/4">
-          <InputGenerator props={inputForm} />
+        <form
+          onSubmit={handleAdd}
+          className="space-y-4 w-3/4"
+          encType="multipart/form-data"
+        >
+          <Accordion items={accordionData} />
+          <div className="">
+            <button
+              type="submit"
+              className={BUTTON_SUBMIT}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? "Adding Product..." : "Submit Product"}
+            </button>
+          </div>
         </form>
       </div>
     </>
