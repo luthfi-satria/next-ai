@@ -25,6 +25,8 @@ export default function AddProductVariants({
   product,
   setProduct,
 }: AddProductVariants) {
+  const [isEdit, setIsEdit] = useState<boolean>(false)
+  const [editKey, setEditKey] = useState<number | null>()
   const useModalOpen = useSideModalOpen()
   const modalTitle = useSideModalTitle()
   const { setSideModalOpen, setSideModalContent, setSideModalTitle } =
@@ -48,6 +50,28 @@ export default function AddProductVariants({
   const handleAddVariant = () => {
     setSideModalTitle("Manage product variant")
     setSideModalOpen(true)
+    setIsEdit(false)
+    setEditKey(null)
+  }
+
+  const handleEditVariant = (index: number) => {
+    setSideModalOpen(true)
+    setIsEdit(true)
+    setEditKey(index)
+    setVariants(product.variants[index])
+  }
+
+  const handleDeleteVariant = (index: number) => {
+    const updatedVariants = product.variants.filter((_, key) => key !== index)
+    setProduct({ ...product, variants: updatedVariants })
+  }
+
+  const handleUpdateVariant = () => {
+    const variantList = [...product.variants]
+    variantList[editKey] = variants
+    setProduct({ ...product, variants: variantList })
+    setVariants(initVariant)
+    setSideModalOpen(false)
   }
 
   return (
@@ -65,8 +89,16 @@ export default function AddProductVariants({
           {product &&
             product.variants.map((items, key) => {
               return (
-                <div className="w-full" key={key}>
-                  <ProductCard variant={items} key={key} />
+                <div
+                  className="w-full relative group overflow-hidden bg-white shadow-lg rounded-xl"
+                  key={key}
+                >
+                  <ProductCard
+                    variant={items}
+                    index={key}
+                    editVariant={handleEditVariant}
+                    deleteVariant={handleDeleteVariant}
+                  />
                 </div>
               )
             })}
@@ -80,7 +112,7 @@ export default function AddProductVariants({
         <AddProductVariantsAttributes
           variants={variants}
           setVariants={setVariants}
-          handleOnSave={handleSaveVariant}
+          handleOnSave={isEdit ? handleUpdateVariant : handleSaveVariant}
         />
       </SideModal>
     </div>

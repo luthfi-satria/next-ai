@@ -1,5 +1,5 @@
 import { FORM_BASE_CLASSNAME } from "@/constants/formStyleConstant"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { LabelInput } from "./inputLabel"
 import { InputGeneratorType } from "./inputGenerator"
 import { formatCurrency } from "@/helpers/currency"
@@ -24,45 +24,49 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
 }) => {
   const inputId = id || label?.toLowerCase().replace(/\s/g, "-")
   const currencyType = currency
-  
+
   // Convert value to number if it's a string
-  const numericValue = typeof value === "string" ? parseFloat(value) || 0 : value || 0
-  
+  const numericValue =
+    typeof value === "string" ? parseFloat(value) || 0 : value || 0
+
   // Format the display value - formatCurrency returns string or 0, so convert 0 to empty string
-  const getFormattedValue = (num: number): string => {
-    const formatted = formatCurrency(num, locale, currencyType)
-    return typeof formatted === "string" ? formatted : ""
-  }
-  
+  const getFormattedValue = useCallback(
+    (num: number): string => {
+      const formatted = formatCurrency(num, locale, currencyType)
+      return typeof formatted === "string" ? formatted : ""
+    },
+    [currencyType, locale],
+  )
+
   const [displayValue, setDisplayValue] = useState<string>(
-    numericValue > 0 ? getFormattedValue(numericValue) : ""
+    numericValue > 0 ? getFormattedValue(numericValue) : "",
   )
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
   // Update display value when prop value changes (only if not focused)
   useEffect(() => {
     if (!isFocused) {
-      const numValue = typeof value === "string" ? parseFloat(value) || 0 : value || 0
+      const numValue =
+        typeof value === "string" ? parseFloat(value) || 0 : value || 0
       setDisplayValue(numValue > 0 ? getFormattedValue(numValue) : "")
     }
-  }, [value, locale, currencyType, isFocused])
+  }, [value, locale, currencyType, isFocused, getFormattedValue])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Remove all non-numeric characters except decimal point
     const rawValue = e.target.value.replace(/[^0-9.]/g, "")
-    
+
     // Handle multiple decimal points - keep only the first one
     const parts = rawValue.split(".")
-    const sanitizedValue = parts.length > 2 
-      ? parts[0] + "." + parts.slice(1).join("")
-      : rawValue
-    
+    const sanitizedValue =
+      parts.length > 2 ? parts[0] + "." + parts.slice(1).join("") : rawValue
+
     // While focused, show raw value for easier typing
     setDisplayValue(sanitizedValue)
-    
+
     // Convert to number for onChange callback
     const numValue = parseFloat(sanitizedValue) || 0
-    
+
     // Call onChange with the raw numeric value
     onChange?.({
       name: e.target.name,
@@ -71,9 +75,11 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
   }
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.preventDefault()
     setIsFocused(true)
     // Show raw numeric value when focused for easier editing
-    const numValue = typeof value === "string" ? parseFloat(value) || 0 : value || 0
+    const numValue =
+      typeof value === "string" ? parseFloat(value) || 0 : value || 0
     setDisplayValue(numValue > 0 ? numValue.toString() : "")
   }
 
@@ -106,4 +112,3 @@ const CurrencyInput: React.FC<CurrencyInputProps> = ({
 }
 
 export default CurrencyInput
-

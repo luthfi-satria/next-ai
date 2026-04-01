@@ -1,18 +1,17 @@
 // store/categoryStore.ts
 
 import { create } from "zustand"
-import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
+import { GETAPICALL, PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import { convertObjectToSelectOptions } from "@/helpers/objectHelpers"
 import { SelectOption } from "@/models/interfaces/global.interfaces"
 import { Category } from "@/models/interfaces/category.interfaces"
 import { catchError } from "@/helpers/responseHelper"
 import { useDebounce } from "@/hooks/useDebounce"
 import { FilterValues } from "@/components/table/TableFilters"
-import { ObjectId } from "mongodb"
 
 // define state store
 interface CategoryStoreState {
-  SelectedCategory: ObjectId
+  SelectedCategory: string
   CategoryFilter: FilterValues
   Categories: Category[]
   CategoryOption: SelectOption[]
@@ -26,13 +25,14 @@ interface CategoryStoreState {
 
 // action type
 interface CategoryStoreActions {
-  setSelectedCategory: (category: ObjectId) => void
+  setSelectedCategory: (category: string) => void
   setCategoryFilter: (filter: FilterValues) => void
   setCategoryIsLoading: (status: boolean) => void
   setCategoryCurrentPage: (number: number) => void
   setCategoryLimit: (number: number) => void
   setCategoryIsSearching: (status: boolean) => void
   fetchCategories: () => void
+  refetchCategoryOptions: () => void
   deleteCategory: () => void
 }
 
@@ -44,7 +44,7 @@ export const useCategoryStore = create<CombinedCategoryStore>((set, get) => {
     const { CategoryFilter, CategoryCurrentPage, CategoryLimit } = get()
     set({ CategoryIsLoading: true, CategoryError: null })
     try {
-      const { response, ApiResponse } = await PopulateTable(
+      const { response, ApiResponse } = await PopulateTable<Category[]>(
         "/api/categories",
         CategoryFilter,
         CategoryCurrentPage,
@@ -110,6 +110,33 @@ export const useCategoryStore = create<CombinedCategoryStore>((set, get) => {
     }
   }
 
+  const refetchOptions = async () => {
+    const { SelectedCategory } = get()
+    if (SelectedCategory) {
+      set({ CategoryIsLoading: true, CategoryError: null })
+      const { response, ApiResponse } = await GETAPICALL<Category>(
+        `/api/categories/${SelectedCategory}`,
+      )
+      if (response.ok && ApiResponse.success) {
+        const data: Category = ApiResponse.data
+
+        const storeOption = convertObjectToSelectOptions([data], {
+          valueKey: "_id",
+          labelKey: "name",
+          defaultValue: "",
+        })
+        set({
+          CategoryOption: storeOption,
+        })
+      } else {
+        set({
+          CategoryOption: null,
+          CategoryError: ApiResponse.message || "Failed to get category",
+        })
+      }
+    }
+  }
+
   return {
     // Initial state
     SelectedCategory: null,
@@ -124,7 +151,7 @@ export const useCategoryStore = create<CombinedCategoryStore>((set, get) => {
     CategoryError: null,
 
     // Action to changed the state and trigger searching
-    setSelectedCategory: (categoryId: ObjectId) =>
+    setSelectedCategory: (categoryId: string) =>
       set({ SelectedCategory: categoryId }),
     setCategoryFilter: (filter: FilterValues) =>
       set({ CategoryFilter: filter }),
@@ -136,6 +163,7 @@ export const useCategoryStore = create<CombinedCategoryStore>((set, get) => {
     setCategoryIsSearching: (isSearch: boolean) =>
       set({ CategoryIsSearching: isSearch }),
     fetchCategories: debouncedFetch,
+    refetchCategoryOptions: refetchOptions,
     deleteCategory: deleteCategory,
   }
 })

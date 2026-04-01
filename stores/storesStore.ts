@@ -1,26 +1,26 @@
 import { FilterValues } from "@/components/table/TableFilters"
-import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
+import { GETAPICALL, PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import { convertObjectToSelectOptions } from "@/helpers/objectHelpers"
 import { catchError } from "@/helpers/responseHelper"
 import { useDebounce } from "@/hooks/useDebounce"
 import { SelectOption } from "@/models/interfaces/global.interfaces"
 import { Stores } from "@/models/interfaces/stores.interfaces"
-import { ObjectId } from "mongodb"
 import { create } from "zustand"
 
 interface StoreActionState {
-  setSelectedStore: (storeId: ObjectId) => void
+  setSelectedStore: (storeId: string) => void
   setStoreFilter: (filter: FilterValues) => void
   setIsLoading: (status: boolean) => void
   setCurrentPage: (page: number) => void
   setLimit: (limit: number) => void
   setIsSearching: (status: boolean) => void
   fetchStores: () => void
+  refetchStoreOptions: () => void
   deleteStores: () => void
 }
 
 interface StoreState {
-  SelectedStore: ObjectId
+  SelectedStore: string
   StoreFilter: FilterValues
   Stores: Stores[]
   StoresOption: SelectOption[]
@@ -39,7 +39,7 @@ const useStoresStore = create<StoreState>((set, get) => {
 
     set({ IsLoading: true, Error: null })
     try {
-      const { response, ApiResponse } = await PopulateTable(
+      const { response, ApiResponse } = await PopulateTable<Stores[]>(
         "/api/stores",
         StoreFilter,
         CurrentPage,
@@ -101,6 +101,33 @@ const useStoresStore = create<StoreState>((set, get) => {
     }
   }
 
+  const refetchStoreOptions = async () => {
+    const { SelectedStore } = get()
+    if (SelectedStore) {
+      set({ IsLoading: true, Error: null })
+      const { response, ApiResponse } = await GETAPICALL<Stores>(
+        `/api/stores/${SelectedStore}`,
+      )
+      if (response.ok && ApiResponse.success) {
+        const data: Stores = ApiResponse.data
+
+        const storeOption = convertObjectToSelectOptions([data], {
+          valueKey: "_id",
+          labelKey: "name",
+          defaultValue: "",
+        })
+        set({
+          StoresOption: storeOption,
+        })
+      } else {
+        set({
+          StoresOption: null,
+          Error: ApiResponse.message || "Failed to get stores",
+        })
+      }
+    }
+  }
+
   return {
     SelectedStore: null,
     StoreFilter: null,
@@ -113,13 +140,14 @@ const useStoresStore = create<StoreState>((set, get) => {
     Limit: 10,
     Error: null,
     Actions: {
-      setSelectedStore: (storeId: ObjectId) => set({ SelectedStore: storeId }),
+      setSelectedStore: (storeId: string) => set({ SelectedStore: storeId }),
       setStoreFilter: (filter: FilterValues) => set({ StoreFilter: filter }),
       setIsLoading: (status: boolean) => set({ IsLoading: status }),
       setCurrentPage: (page: number) => set({ CurrentPage: page }),
       setLimit: (limit: number) => set({ Limit: limit }),
       setIsSearching: (isSearch: boolean) => set({ IsSearching: isSearch }),
       fetchStores: debounceFetch,
+      refetchStoreOptions: refetchStoreOptions,
       deleteStores: deleteStores,
     },
   }

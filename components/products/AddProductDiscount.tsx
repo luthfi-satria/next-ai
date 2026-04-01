@@ -5,7 +5,7 @@ import {
   DiscountType,
   ProductInfo,
 } from "@/models/interfaces/products.interfaces"
-import { Currency, SelectOption } from "@/models/interfaces/global.interfaces"
+import { SelectOption } from "@/models/interfaces/global.interfaces"
 import Button from "../form/inputButton"
 import {
   PencilIcon,
@@ -14,7 +14,6 @@ import {
   TrashIcon,
 } from "@heroicons/react/outline"
 import DateRangeInput from "../form/inputDateRange"
-import TextInput from "../form/inputText"
 import {
   addDays,
   formatDate,
@@ -43,8 +42,7 @@ export default function AddProductDiscount({
 }: AddProductDiscountProps) {
   const useModalOpen = useSideModalOpen()
   const modalTitle = useSideModalTitle()
-  const { setSideModalOpen, setSideModalContent, setSideModalTitle } =
-    useAdminActions()
+  const { setSideModalOpen, setSideModalContent } = useAdminActions()
 
   const discountType: SelectOption[] = enumToSelectOptions(DiscountType)
   const startDateChangeHandle = (e: ChangeEventOrValues) => {
@@ -66,6 +64,8 @@ export default function AddProductDiscount({
   }
 
   const [discounts, setDiscounts] = useState<Discount>(initDiscount)
+  const [isEdit, setIsEdit] = useState<boolean>(false)
+  const [editKey, setEditKey] = useState<number | null>()
 
   const handleRemoveDiscount = (keyToRemove: number) => {
     const updatedDiscounts = product.discount.filter(
@@ -86,6 +86,15 @@ export default function AddProductDiscount({
 
   const handleAddDiscount = () => {
     setSideModalOpen(true)
+    setIsEdit(false)
+    setEditKey(null)
+  }
+
+  const handleEditDiscount = (keyToEdit: number) => {
+    setSideModalOpen(true)
+    setIsEdit(true)
+    setEditKey(keyToEdit)
+    setDiscounts(product.discount[keyToEdit])
   }
 
   const handleCloseModal = () => {
@@ -94,17 +103,39 @@ export default function AddProductDiscount({
   }
 
   const saveDiscountPlan = () => {
-    const discountList = [...product.discount, discounts]
-    setProduct({ ...product, discount: discountList })
+    if (!isEdit) {
+      const discountList = [...product.discount, discounts]
+      setProduct({ ...product, discount: discountList })
+    } else {
+      const discountList = [...product.discount]
+      discountList[editKey] = discounts
+      setProduct({ ...product, discount: discountList })
+    }
     setSideModalOpen(false)
+  }
+
+  const discountsColor = (type: string) => {
+    if (type == DiscountType.PERCENTAGE) {
+      return "bg-red-800"
+    }
+    if (type == DiscountType.CASHBACK) {
+      return "bg-teal-800"
+    }
+    if (type == DiscountType.DELIVERY) {
+      return "bg-blue-600"
+    }
   }
 
   return (
     <div className="discount-wrapper flex flex-col gap-4">
-      {product.discount &&
+      {product &&
+        product.discount &&
         product.discount.map((items, key) => {
           return (
-            <div key={key} className="text-white p-2 rounded-xl bg-red-800">
+            <div
+              key={key}
+              className={`text-white p-2 rounded-xl ${discountsColor(items.type)}`}
+            >
               <div className="product-discounts relative flex flex-row gap-3 p-2">
                 <div className="discount-amount text-3xl font-bold border-r border-dashed p-4 w-1/2">
                   {[DiscountType.CASHBACK, DiscountType.DELIVERY].includes(
@@ -131,6 +162,7 @@ export default function AddProductDiscount({
                 <button
                   type="button"
                   className="flex flex-row gap-2 cursor-pointer hover:text-yellow-100"
+                  onClick={() => handleEditDiscount(key)}
                 >
                   <PencilIcon width="20" height="20"></PencilIcon>
                   Edit
@@ -138,6 +170,7 @@ export default function AddProductDiscount({
                 <button
                   type="button"
                   className="flex flex-row gap-2 cursor-pointer hover:text-yellow-100"
+                  onClick={() => handleRemoveDiscount(key)}
                 >
                   <TrashIcon width="20" height="20"></TrashIcon>
                   Delete

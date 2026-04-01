@@ -73,7 +73,10 @@ export default function AddProductVariantsAttributes({
 
     if ("target" in e) {
       // It's a ChangeEvent - need to check if target has name and value properties
-      const target = e.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      const target = e.target as
+        | HTMLInputElement
+        | HTMLSelectElement
+        | HTMLTextAreaElement
       name = target.name
       value = target.value
     } else {

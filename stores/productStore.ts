@@ -1,7 +1,7 @@
 // store/productStore.ts
 
 import { create } from "zustand"
-import { PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
+import { GETAPICALL, PopulateTable, PUSHAPI } from "@/helpers/apiRequest"
 import { catchError } from "@/helpers/responseHelper"
 import { FilterValues } from "@/components/table/TableFilters"
 import {
@@ -14,10 +14,13 @@ import {
 } from "@/models/interfaces/products.interfaces"
 import { ObjectId } from "mongodb"
 import { Dispatch, SetStateAction } from "react"
+import { ParamValue } from "next/dist/server/request/params"
 
 // action type
 interface ProductActionState {
   setSelectedProduct: (productId: ObjectId) => void
+  getDetailProduct: (productId: ParamValue) => void
+  setDetailProduct: (product: ProductInfo) => void
   setProductFilter: (filter: FilterValues) => void
   setIsLoading: (status: boolean) => void
   setCurrentPage: (page: number) => void
@@ -50,6 +53,7 @@ interface AddNewProductState {
 // define state store
 interface ProductStoreState {
   SelectedProduct: ObjectId
+  DetailProduct: ProductInfo
   Products: Products[]
   ProductFilter: FilterValues
   TotalProducts: number
@@ -94,6 +98,34 @@ const useProductStore = create<ProductStoreState>((set, get) => {
     } finally {
       set({ IsLoading: false, IsSearching: false })
     }
+  }
+
+  const detailProduct = async (id: ParamValue) => {
+    set({ IsLoading: true, Error: null })
+    try {
+      const { response, ApiResponse } = await GETAPICALL(`/api/products/${id}`)
+
+      if (response.ok && ApiResponse.success) {
+        const data = ApiResponse.data
+        set({
+          DetailProduct: data as Products,
+        })
+      } else {
+        set({
+          DetailProduct: null,
+          Error: ApiResponse.message || "Failed to get product",
+        })
+      }
+    } catch (err: unknown) {
+      const errMsg = catchError(err)
+      set({ DetailProduct: null, Error: errMsg })
+    } finally {
+      set({ IsLoading: false, IsSearching: false })
+    }
+  }
+
+  const setDetailProduct = async (product: ProductInfo) => {
+    set({ DetailProduct: product })
   }
 
   const deleteProduct = async () => {
@@ -224,6 +256,7 @@ const useProductStore = create<ProductStoreState>((set, get) => {
   return {
     // Initial state
     SelectedProduct: null,
+    DetailProduct: null,
     Products: [],
     ProductFilter: null,
     TotalProducts: 0,
@@ -235,8 +268,9 @@ const useProductStore = create<ProductStoreState>((set, get) => {
     ResponseMessage: null,
     Actions: {
       // Action to changed the state
-      setSelectedProduct: (productId: ObjectId) =>
-        set({ SelectedProduct: productId }),
+      setSelectedProduct: (productId: ObjectId) => {
+        set({ SelectedProduct: productId })
+      },
       setProductFilter: (filter: FilterValues) => {
         set({ ProductFilter: filter })
       },
@@ -259,6 +293,8 @@ const useProductStore = create<ProductStoreState>((set, get) => {
         set({ ResponseMessage: msg })
       },
       fetchProducts: fetchProducts,
+      getDetailProduct: detailProduct,
+      setDetailProduct: setDetailProduct,
       deleteProduct: deleteProduct,
       setNewProduct: setNewProduct,
       setNewVariantField: setNewVariantField,
@@ -277,6 +313,7 @@ const useProductStore = create<ProductStoreState>((set, get) => {
 const useSelectedProduct = () =>
   useProductStore((state) => state.SelectedProduct)
 const useProductsIsSearch = () => useProductStore((state) => state.IsSearching)
+const useProductDetail = () => useProductStore((state) => state.DetailProduct)
 const useProducts = () => useProductStore((state) => state.Products)
 const useProductsFilter = () => useProductStore((state) => state.ProductFilter)
 const useProductsPage = () => useProductStore((state) => state.CurrentPage)
@@ -291,6 +328,7 @@ const useNewVariants = () =>
 export {
   useSelectedProduct,
   useProducts,
+  useProductDetail,
   useTotalProducts,
   useProductsError,
   useProductsAction,

@@ -119,6 +119,8 @@ export default function HomePage() {
   const handleConfirmDelete = (categoryId: ObjectId) => {
     setIsModalOpen(true)
     setSelectedProduct(categoryId)
+    deleteProduct()
+    setIsSearching(true)
   }
 
   const handlePageChange = (page: number) => {
@@ -173,7 +175,7 @@ export default function HomePage() {
         deleteProduct()
         setIsModalOpen(false)
       },
-      title: "Remove store",
+      title: "Remove product",
     },
   }
 
@@ -181,7 +183,12 @@ export default function HomePage() {
     { name: "Name", columnKey: "name", translater: translateName },
     { name: "SKU", columnKey: "sku" },
     { name: "Category", columnKey: "categoryName" },
-    { name: "Price", columnKey: "price", translater: (value: string, _: Record<string, unknown>) => formatCurrency(parseFloat(value))},
+    {
+      name: "Price",
+      columnKey: "price",
+      translater: (value: string, _: Record<string, unknown>) =>
+        formatCurrency(parseFloat(value)),
+    },
     { name: "Availability", columnKey: "availability" },
     { name: "Status", columnKey: "status" },
     { name: "Action", columnKey: "_id", translater: translateAction },

@@ -37,6 +37,7 @@ export interface searchProduct {
   min_price?: string
   max_price?: string
   status?: PublishStatus
+  search?: string
   page?: string
   limit?: string
 }

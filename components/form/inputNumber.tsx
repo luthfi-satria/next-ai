@@ -1,5 +1,5 @@
 import { FORM_BASE_CLASSNAME } from "@/constants/formStyleConstant"
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useCallback } from "react"
 import { LabelInput } from "./inputLabel"
 import { InputGeneratorType } from "./inputGenerator"
 
@@ -25,55 +25,59 @@ const NumberInput: React.FC<NumberInputProps> = ({
   max,
 }) => {
   const inputId = id || label?.toLowerCase().replace(/\s/g, "-")
-  
+
   // Convert value to number if it's a string
-  const numericValue = typeof value === "string" ? parseFloat(value) || 0 : value || 0
-  
+  const numericValue =
+    typeof value === "string" ? parseFloat(value) || 0 : value || 0
+
   // Format number with thousand separators
-  const formatNumber = (num: number): string => {
-    if (isNaN(num) || num === 0) return ""
-    
-    // Use Intl.NumberFormat for locale-aware formatting
-    const formatter = new Intl.NumberFormat(locale, {
-      minimumFractionDigits: allowDecimal ? 0 : 0,
-      maximumFractionDigits: allowDecimal ? 2 : 0,
-    })
-    
-    return formatter.format(num)
-  }
-  
+  const formatNumber = useCallback(
+    (num: number): string => {
+      if (isNaN(num) || num === 0) return ""
+
+      // Use Intl.NumberFormat for locale-aware formatting
+      const formatter = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: allowDecimal ? 0 : 0,
+        maximumFractionDigits: allowDecimal ? 2 : 0,
+      })
+
+      return formatter.format(num)
+    },
+    [allowDecimal, locale],
+  )
+
   const [displayValue, setDisplayValue] = useState<string>(
-    numericValue !== 0 ? formatNumber(numericValue) : ""
+    numericValue !== 0 ? formatNumber(numericValue) : "",
   )
   const [isFocused, setIsFocused] = useState<boolean>(false)
 
   // Update display value when prop value changes (only if not focused)
   useEffect(() => {
     if (!isFocused) {
-      const numValue = typeof value === "string" ? parseFloat(value) || 0 : value || 0
+      const numValue =
+        typeof value === "string" ? parseFloat(value) || 0 : value || 0
       setDisplayValue(numValue !== 0 ? formatNumber(numValue) : "")
     }
-  }, [value, locale, allowDecimal, isFocused])
+  }, [value, locale, allowDecimal, isFocused, formatNumber])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     // Remove all non-numeric characters, optionally allow decimal point
     const regex = allowDecimal ? /[^0-9.]/g : /[^0-9]/g
     let rawValue = e.target.value.replace(regex, "")
-    
+
     // Handle multiple decimal points - keep only the first one
     if (allowDecimal) {
       const parts = rawValue.split(".")
-      rawValue = parts.length > 2 
-        ? parts[0] + "." + parts.slice(1).join("")
-        : rawValue
+      rawValue =
+        parts.length > 2 ? parts[0] + "." + parts.slice(1).join("") : rawValue
     }
-    
+
     // While focused, show raw value for easier typing
     setDisplayValue(rawValue)
-    
+
     // Convert to number for onChange callback
     const numValue = parseFloat(rawValue) || 0
-    
+
     // Apply min/max constraints if provided
     let constrainedValue = numValue
     if (min !== undefined && numValue < min) {
@@ -84,7 +88,7 @@ const NumberInput: React.FC<NumberInputProps> = ({
       constrainedValue = max
       setDisplayValue(constrainedValue.toString())
     }
-    
+
     // Call onChange with the raw numeric value
     onChange?.({
       name: e.target.name,
@@ -93,18 +97,23 @@ const NumberInput: React.FC<NumberInputProps> = ({
   }
 
   const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.preventDefault()
     setIsFocused(true)
     // Show raw numeric value when focused for easier editing
-    const numValue = typeof value === "string" ? parseFloat(value) || 0 : value || 0
+    const numValue =
+      typeof value === "string" ? parseFloat(value) || 0 : value || 0
     setDisplayValue(numValue !== 0 ? numValue.toString() : "")
   }
 
   const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
     setIsFocused(false)
     // Format with thousand separators when blurred
-    const rawValue = e.target.value.replace(allowDecimal ? /[^0-9.]/g : /[^0-9]/g, "")
+    const rawValue = e.target.value.replace(
+      allowDecimal ? /[^0-9.]/g : /[^0-9]/g,
+      "",
+    )
     const numValue = parseFloat(rawValue) || 0
-    
+
     // Apply min/max constraints
     let constrainedValue = numValue
     if (min !== undefined && numValue < min) {
@@ -113,8 +122,9 @@ const NumberInput: React.FC<NumberInputProps> = ({
     if (max !== undefined && numValue > max) {
       constrainedValue = max
     }
-    
-    const formatted = constrainedValue !== 0 ? formatNumber(constrainedValue) : ""
+
+    const formatted =
+      constrainedValue !== 0 ? formatNumber(constrainedValue) : ""
     setDisplayValue(formatted)
   }
 
@@ -138,5 +148,3 @@ const NumberInput: React.FC<NumberInputProps> = ({
 }
 
 export default NumberInput
-
-

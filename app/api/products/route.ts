@@ -16,6 +16,7 @@ import { ElasticsearchQuery } from "@/models/interfaces/elasticsearch.interfaces
 import { Currency } from "@/models/interfaces/global.interfaces"
 import {
   Availability,
+  Brands,
   ProductInfo,
   Products,
   searchProduct,
@@ -45,11 +46,11 @@ export async function GET(req: NextRequest) {
     }
     const esIds = esResult.hits.hits.map((hit) => new ObjectId(hit._id))
     const docCollection = await getMongoCollection<Products>(COLLECTION_NAME)
-    console.log(`esIds`, esIds)
+
     const collectionData = await docCollection
       .find({ _id: { $in: esIds } })
       .toArray()
-    
+
     // Get all unique category IDs from products
     const categoryIds = [
       ...new Set(
@@ -63,11 +64,12 @@ export async function GET(req: NextRequest) {
     // Fetch all categories at once
     const categoryMap = new Map<string, string>()
     if (categoryIds.length > 0) {
-      const categoryCollection = await getMongoCollection<Category>("categories")
+      const categoryCollection =
+        await getMongoCollection<Category>("categories")
       const categories = await categoryCollection
         .find({ _id: { $in: categoryIds } })
         .toArray()
-      
+
       // Create a map of category ID to category name
       categories.forEach((category) => {
         if (category._id) {
@@ -84,7 +86,7 @@ export async function GET(req: NextRequest) {
         const categoryIdStr = String(product.category)
         categoryName = categoryMap.get(categoryIdStr) || categoryIdStr
       }
-      
+
       return {
         ...product,
         categoryName: categoryName,
@@ -205,7 +207,10 @@ export async function POST(req: NextRequest) {
         // Use images array length to determine how many images this variant should have
         // The frontend sends images in order, so we match them sequentially
         const variantImageCount = variant.images?.length || 0
-        if (variantImageCount > 0 && variantImgIndex < uploadedVariantImgs.length) {
+        if (
+          variantImageCount > 0 &&
+          variantImgIndex < uploadedVariantImgs.length
+        ) {
           const variantImages = uploadedVariantImgs
             .slice(variantImgIndex, variantImgIndex + variantImageCount)
             .map((img) => img.url)
@@ -279,6 +284,147 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  try {
+    const newCollection = await req.formData()
+    const payload = newCollection.get("payload") as string
+    const dataPayload = JSON.parse(payload)
+    const productId: string = dataPayload._id
+
+    const validMsg = await dataValidation(dataPayload)
+    if (validMsg != "") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: validMsg,
+        },
+        { status: 401 },
+      )
+    }
+
+    const isVerified = await dataVerification(dataPayload)
+    if (isVerified != "") {
+      return NextResponse.json(
+        {
+          success: false,
+          message: isVerified,
+        },
+        { status: 401 },
+      )
+    }
+    // UPLOAD IMAGES
+    const imageHandler = await handleUploadImages(newCollection)
+    handleImageError(imageHandler)
+
+    // Prepare product images
+    const productImages =
+      Array.isArray(imageHandler.uploadImgFiles) &&
+      imageHandler.uploadImgFiles.length > 0
+        ? imageHandler.uploadImgFiles.map((img) => img.url)
+        : []
+
+    // Update brand logo if uploaded
+    const brandData: Brands = { ...dataPayload.brand }
+    if (brandData.logoUrl) {
+      brandData.logoUrl = brandData.logoUrl.replace(/^(\/)+/, "")
+    }
+    if (
+      imageHandler.uploadBrand &&
+      typeof imageHandler.uploadBrand !== "string"
+    ) {
+      brandData.logoUrl = imageHandler.uploadBrand.url
+    }
+
+    // Update variant images if uploaded
+    const variantsData = dataPayload.variants ? [...dataPayload.variants] : []
+    const uploadedVariantImgs = imageHandler.uploadVariantImgs
+    if (Array.isArray(uploadedVariantImgs) && uploadedVariantImgs.length > 0) {
+      let variantImgIndex = 0
+      variantsData.forEach((variant, index) => {
+        // Use images array length to determine how many images this variant should have
+        // The frontend sends images in order, so we match them sequentially
+        const variantImageCount = variant.images?.length || 0
+        if (
+          variantImageCount > 0 &&
+          variantImgIndex < uploadedVariantImgs.length
+        ) {
+          const variantImages = uploadedVariantImgs
+            .slice(variantImgIndex, variantImgIndex + variantImageCount)
+            .map((img) => img.url)
+          variantsData[index] = {
+            ...variant,
+            images: variantImages,
+          }
+          variantImgIndex += variantImageCount
+        }
+      })
+    }
+
+    const docCollection = await getMongoCollection<Products>(COLLECTION_NAME)
+    const dateNow = dateNowIsoFormat()
+    const productDetail = await docCollection.findOne({
+      _id: new ObjectId(productId),
+    })
+    const updateDoc: Products = {
+      ...productDetail,
+      name: dataPayload.name,
+      description: dataPayload.description,
+      sku: dataPayload.sku,
+      brand: brandData,
+      category: dataPayload.category,
+      storeUUId: dataPayload.storeUUId,
+      images: [...productDetail.images, ...productImages],
+      tags: dataPayload.tags || "",
+      price: dataPayload.price,
+      currency: dataPayload.currency ?? Currency.RUPIAH,
+      discount: dataPayload.discount || [],
+      availability: dataPayload.availability ?? Availability.INSTOCK,
+      stockQty: dataPayload.stockQty,
+      minOrder: dataPayload.minOrder ?? 1,
+      options: dataPayload.options || [],
+      status: dataPayload.status,
+      weight: dataPayload.weight,
+      variants: variantsData,
+      averageRating: 0,
+      slug: await customSlugify(dataPayload.name),
+      updatedAt: dateNow,
+    }
+
+    delete updateDoc._id
+    const result = await docCollection.findOneAndUpdate(
+      { _id: new ObjectId(productId) },
+      { $set: updateDoc },
+      { returnDocument: "after" },
+    )
+
+    await elasticsearch.upsertDocument({
+      index: INDEX_NAME,
+      id: result._id.toHexString(),
+      document: updateDoc,
+    })
+
+    return NextResponse.json(
+      {
+        success: true,
+        data: dataPayload,
+        message: "Product update successfully",
+      },
+      { status: 201 },
+    )
+  } catch (error: unknown) {
+    const errorMsg = catchError(error)
+    console.error(`Error in PUT /api/${COLLECTION_NAME}:`, error)
+    return NextResponse.json(
+      {
+        success: false,
+        message: `Failed to update ${COLLECTION_NAME}`,
+        error: errorMsg,
+      },
+      { status: 500 },
+    )
+  }
+}
+
+export async function PUTBCK(req: NextRequest) {
   const body = await req.json()
 
   const id = body._id as ObjectId
@@ -349,6 +495,7 @@ export async function PUT(req: NextRequest) {
 
 async function buildElasticQuery(req) {
   const {
+    search,
     name,
     brand,
     category,
@@ -371,10 +518,10 @@ async function buildElasticQuery(req) {
       filter: [],
     },
   }
-  if (name) {
+  if (name || search) {
     esQuery.bool.must.push({
       multi_match: {
-        query: name,
+        query: name || search,
         fields: ["name.autocomplete"],
         type: "best_fields",
       },
@@ -536,5 +683,45 @@ async function handleUploadImages(collection: FormData) {
     uploadBrand,
     uploadVariantImgs,
     uploadImgFiles,
+  }
+}
+
+function handleImageError(imageHandler) {
+  // Handle image upload errors (only if there was an actual error, not just empty)
+  if (
+    typeof imageHandler.uploadBrand === "string" &&
+    imageHandler.uploadBrand !== ""
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: imageHandler.uploadBrand,
+      },
+      { status: 400 },
+    )
+  }
+  if (
+    typeof imageHandler.uploadImgFiles === "string" &&
+    imageHandler.uploadImgFiles !== ""
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: imageHandler.uploadImgFiles,
+      },
+      { status: 400 },
+    )
+  }
+  if (
+    typeof imageHandler.uploadVariantImgs === "string" &&
+    imageHandler.uploadVariantImgs !== ""
+  ) {
+    return NextResponse.json(
+      {
+        success: false,
+        message: imageHandler.uploadVariantImgs,
+      },
+      { status: 400 },
+    )
   }
 }

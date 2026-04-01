@@ -21,12 +21,17 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
   name,
   isLoading = false,
 }) => {
+  const [suggestions, setSuggestions] = useState(options)
   const [inputValue, setInputValue] = useState(
     options.find((item) => item.value === value)?.label ?? "",
   )
-  const [suggestions, setSuggestions] = useState(options)
+  useEffect(() => {
+    const initialLabel =
+      options.find((item) => item.value === value)?.label ?? ""
+    setInputValue(initialLabel)
+  }, [value, options])
+
   const [showSuggestions, setShowSuggestions] = useState(false)
-  const [showDelayedMessage, setShowDelayedMessage] = useState(false)
   const wrapperRef = useRef(null)
 
   useEffect(() => {
@@ -35,26 +40,6 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
     })
     setSuggestions(filtered)
   }, [inputValue, options])
-
-  useEffect(() => {
-    let timer
-
-    const shouldShowDelayed =
-      !isLoading && suggestions.length === 0 && inputValue.length > 0
-
-    if (shouldShowDelayed) {
-      timer = setTimeout(() => {
-        setShowDelayedMessage(true)
-      }, 500)
-    } else {
-      clearTimeout(timer)
-      setShowDelayedMessage(false)
-    }
-
-    return () => {
-      clearTimeout(timer)
-    }
-  }, [isLoading, suggestions.length, inputValue.length])
 
   useEffect(() => {
     function handleClickOutside(event) {
@@ -94,7 +79,7 @@ const AutocompleteInput: React.FC<AutocompleteInputProps> = ({
           name={name || id}
           type="text"
           value={inputValue}
-          className={`${className} w-full border border-gray-400 py-1.5 px-2 rounded-tl-lg rounded-bl-xl`}
+          className={`${className} w-full border border-gray-400 py-1.5 px-2 rounded-tl-lg rounded-bl-lg`}
           onChange={handleInputChange}
           onFocus={() => setShowSuggestions(true)}
           placeholder={placeholder}

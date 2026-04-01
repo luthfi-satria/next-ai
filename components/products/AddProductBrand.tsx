@@ -25,12 +25,24 @@ export default function AddProductBrand({
           ...product,
           brand: { ...product.brand, logoUrl: fileUrl, logoFile: file },
         })
+        console.log("product", product)
       }
     }
   }
 
+  const fetchProductImage = (imageUrl: string) => {
+    if (!imageUrl) {
+      return "file.svg"
+    }
+
+    if (imageUrl.startsWith("/https") || imageUrl.startsWith("/http")) {
+      return imageUrl.substring(1, imageUrl.length)
+    }
+
+    return imageUrl
+  }
   return (
-    <div className="flex flex-row gap-4">
+    <div className="flex flex-col gap-4">
       <div className="brand-field grow">
         <label htmlFor="brand_name" className="block text-sm font-medium">
           Brand Name
@@ -41,24 +53,28 @@ export default function AddProductBrand({
           onChange={handleInputBrand}
         />
       </div>
-      <div className="brand-images w-1/3">
+      <div className="brand-images w-full">
         <label
           htmlFor="brand_image"
-          className="flex flex-row gap-2 justify-center align-middle p-2 cursor-pointer hover:bg-slate-100 rounded-lg"
+          className="flex flex-col gap-2 justify-center align-middle p-2 cursor-pointer hover:bg-slate-100 rounded-lg"
         >
+          <div className="font-bold">Image Preview</div>
           <input
             type="file"
             id="brand_image"
             accept="image/*"
             onChange={handleInputBrand}
-            className="w-0"
+            className="w-0 h-0"
           />
-          <img
-            src={`${product?.brand?.logoUrl || "/file.svg"}`}
-            alt="logo-preview"
-            className="w-[50px] h-[50px] rounded-lg"
-          />
-          <div id="img-placeholder-text">Click or Drag Image Here</div>
+          {product?.brand?.logoUrl ? (
+            <img
+              src={fetchProductImage(product?.brand?.logoUrl)}
+              alt="logo-preview"
+              className="w-full h-50 rounded-lg object-contain"
+            />
+          ) : (
+            <div id="img-placeholder-text ">Click or Drag Image Here</div>
+          )}
         </label>
       </div>
     </div>

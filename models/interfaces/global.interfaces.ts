@@ -1,6 +1,9 @@
 export type APIResponse<T> = {
   success: boolean
   results?: {
+    total?: number
+    per_page?: number
+    page?: number
     data: T
   }
   data?: T
